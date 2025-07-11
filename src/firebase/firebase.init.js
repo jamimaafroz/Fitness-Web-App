@@ -6,12 +6,12 @@ import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCK73kkdPkEcGkKmAfGvDqFxTesZrtoM0o",
-  authDomain: "fitness-app-541cc.firebaseapp.com",
-  projectId: "fitness-app-541cc",
-  storageBucket: "fitness-app-541cc.firebasestorage.app",
-  messagingSenderId: "1061197334230",
-  appId: "1:1061197334230:web:8c08363ff0013950966b77",
+  apiKey: import.meta.env.VITE_apiKey,
+  authDomain: import.meta.env.VITE_authDomain,
+  projectId: import.meta.env.VITE_projectId,
+  storageBucket: import.meta.env.VITE_storageBucket,
+  messagingSenderId: import.meta.env.VITE_messagingSenderId,
+  appId: import.meta.env.VITE_appId,
 };
 
 // Initialize Firebase
