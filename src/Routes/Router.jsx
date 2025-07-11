@@ -3,11 +3,16 @@ import Home from "../Layouts/pages/Home/Home";
 import RootLayout from "../Layouts/RootLayout/RootLayout";
 import Login from "../Layouts/pages/Login";
 import Register from "../Layouts/pages/Register";
+import { HelmetProvider } from "react-helmet-async";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    Component: RootLayout,
+    element: (
+      <HelmetProvider>
+        <RootLayout />
+      </HelmetProvider>
+    ),
     children: [
       {
         index: true,
