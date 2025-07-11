@@ -1,9 +1,10 @@
 import React from "react";
 import { Menu } from "lucide-react";
-import { Link, NavLink, useNavigate } from "react-router";
+import { Link, NavLink, useNavigate } from "react-router"; // make sure react-router-dom
 import { Button } from "@/components/ui/button";
 import useAuth from "../../../Hooks/useAuth";
 import Logo from "../../../Hooks/Logo";
+import AuthButtons from "../../../Hooks/AuthButtons";
 
 const Navbar = () => {
   const { user, logOut } = useAuth();
@@ -18,23 +19,6 @@ const Navbar = () => {
       .catch((err) => console.error(err));
   };
 
-  const links = (
-    <>
-      <NavLink to="/">
-        <p className="text-xl font-bold hover:text-[#C65656]">Home</p>
-      </NavLink>
-      <NavLink to="/trainers">
-        <p className="text-xl font-bold hover:text-[#C65656]">Trainers</p>
-      </NavLink>
-      <NavLink to="/classes">
-        <p className="text-xl font-bold hover:text-[#C65656]">Classes</p>
-      </NavLink>
-      <NavLink to="/community">
-        <p className="text-xl font-bold hover:text-[#C65656]">Community</p>
-      </NavLink>
-    </>
-  );
-
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-transparent shadow-md">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -46,36 +30,28 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex gap-6 items-center">{links}</nav>
+        <nav className="hidden md:flex gap-6 items-center">
+          {["/", "/trainers", "/classes", "/community"].map((path, i) => {
+            const labels = ["Home", "Trainers", "Classes", "Community"];
+            return (
+              <NavLink
+                key={path}
+                to={path}
+                className={({ isActive }) =>
+                  `text-xl font-bold transition-colors duration-300 ${
+                    isActive ? "text-[#C65656]" : "hover:text-[#C65656]"
+                  }`
+                }
+              >
+                {labels[i]}
+              </NavLink>
+            );
+          })}
+        </nav>
 
         {/* Auth Buttons + Avatar */}
         <div className="flex items-center gap-4">
-          {user ? (
-            <>
-              <img
-                src={
-                  user.photoURL ||
-                  "https://i.ibb.co/Gv1qf3v/default-profile.png"
-                }
-                alt={user.displayName || "User"}
-                className="w-9 h-9 rounded-full object-cover border-2 border-primary cursor-pointer"
-                title={user.displayName || "User"}
-              />
-              <Button
-                variant="outline"
-                className="text-base hover:text-red-500 transition-colors duration-200"
-                onClick={handleSignOut}
-              >
-                Log out
-              </Button>
-            </>
-          ) : (
-            <NavLink to="/login">
-              <Button className="text-base hover:bg-primary/10 transition-colors duration-200">
-                Login
-              </Button>
-            </NavLink>
-          )}
+          <AuthButtons user={user} onLogout={handleSignOut} />
 
           {/* Mobile menu icon */}
           <button className="md:hidden focus:outline-none">

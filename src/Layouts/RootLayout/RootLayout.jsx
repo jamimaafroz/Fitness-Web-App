@@ -1,6 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router";
 import Navbar from "../pages/Navbar/Navbar";
+import Footer from "../pages/Footer/Footer";
 // import Navbar from "../pages/shared/Navbar/Navbar";
 // import Footer from "../pages/shared/Footer/Footer";
 
@@ -12,6 +13,7 @@ const RootLayout = () => {
         {/* or whatever your navbar height is */}
         <Outlet />
       </main>
+      <Footer></Footer>
     </div>
   );
 };
