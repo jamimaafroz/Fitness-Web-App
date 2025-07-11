@@ -9,6 +9,7 @@ import useAuth from "../../Hooks/useAuth";
 import { Link, useNavigate } from "react-router";
 import { FcGoogle } from "react-icons/fc";
 import CustomHelmet from "../../components/ui/Meta/CustomHelmet";
+import { toast } from "react-toastify";
 
 const Register = () => {
   const { createUser, signInWithGoogle } = useAuth();
@@ -33,6 +34,7 @@ const Register = () => {
       });
 
       console.log("User created & profile updated:", user);
+      toast.success("Signned in successfully!");
 
       navigate("/");
     } catch (error) {
@@ -43,6 +45,7 @@ const Register = () => {
     signInWithGoogle()
       .then((result) => {
         console.log("Google Sign In Result:", result.user);
+        toast.success("Signned in successfully!");
         navigate("/");
       })
       .catch((error) => console.error("Google Sign In Error:", error));

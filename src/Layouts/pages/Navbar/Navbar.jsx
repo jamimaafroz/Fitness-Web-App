@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import useAuth from "../../../Hooks/useAuth";
 import Logo from "../../../Hooks/Logo";
 import AuthButtons from "../../../Hooks/AuthButtons";
+import { toast } from "react-toastify";
 
 const Navbar = () => {
   const { user, logOut } = useAuth();
@@ -14,9 +15,11 @@ const Navbar = () => {
     logOut()
       .then(() => {
         console.log("Logged out");
+        toast.success("Logged Out successfully!");
         navigate("/login");
       })
       .catch((err) => console.error(err));
+    toast.error("Invalid credentials, please try again.");
   };
 
   return (

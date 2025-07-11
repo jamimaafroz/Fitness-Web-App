@@ -7,6 +7,7 @@ import { Link, useLocation, useNavigate } from "react-router";
 import useAuth from "../../Hooks/useAuth";
 import { FcGoogle } from "react-icons/fc";
 import CustomHelmet from "../../components/ui/Meta/CustomHelmet";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const {
@@ -26,6 +27,7 @@ const Login = () => {
     signIn(data.email, data.password)
       .then((result) => {
         console.log(result.user);
+        toast.success("Logged in successfully!");
         navigate(form);
       })
       .catch((error) => console.log(error));
@@ -36,6 +38,7 @@ const Login = () => {
     signInWithGoogle()
       .then((result) => {
         console.log("Google Sign In Result:", result.user);
+        toast.success("Logged in successfully!");
         navigate(form);
       })
       .catch((error) => console.error("Google Sign In Error:", error));
