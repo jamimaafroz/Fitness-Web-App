@@ -1,10 +1,9 @@
 import React from "react";
 import { Menu } from "lucide-react";
-import { Link, NavLink, useNavigate } from "react-router"; // make sure react-router-dom
+import { Link, NavLink, useNavigate } from "react-router"; // ✅ Use react-router-dom!
 import { Button } from "@/components/ui/button";
 import useAuth from "../../../Hooks/useAuth";
 import Logo from "../../../Hooks/Logo";
-import AuthButtons from "../../../Hooks/AuthButtons";
 import { toast } from "react-toastify";
 
 const Navbar = () => {
@@ -14,12 +13,13 @@ const Navbar = () => {
   const handleSignOut = () => {
     logOut()
       .then(() => {
-        console.log("Logged out");
-        toast.success("Logged Out successfully!");
+        toast.success("Logged out successfully!");
         navigate("/login");
       })
-      .catch((err) => console.error(err));
-    toast.error("Invalid credentials, please try again.");
+      .catch((err) => {
+        toast.error("Failed to log out. Please try again.");
+        console.error(err);
+      });
   };
 
   return (
@@ -50,11 +50,53 @@ const Navbar = () => {
               </NavLink>
             );
           })}
+
+          {/* Show dashboard link if logged in */}
+          {user && (
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) =>
+                `text-xl font-bold transition-colors duration-300 ${
+                  isActive ? "text-[#C65656]" : "hover:text-[#C65656]"
+                }`
+              }
+            >
+              Dashboard
+            </NavLink>
+          )}
         </nav>
 
         {/* Auth Buttons + Avatar */}
         <div className="flex items-center gap-4">
-          <AuthButtons user={user} onLogout={handleSignOut} />
+          {user ? (
+            <>
+              {/* Profile Picture */}
+              <img
+                src={
+                  user.photoURL ||
+                  "https://i.ibb.co/Gv1qf3v/default-profile.png"
+                }
+                alt={user.displayName || "User"}
+                className="w-9 h-9 rounded-full object-cover border-2 border-[#C65656]"
+                title={user.displayName || "User"}
+              />
+
+              {/* Log Out Button */}
+              <Button
+                onClick={handleSignOut}
+                className="px-4 py-2 text-[#C65656] border border-[#C65656] rounded-md hover:bg-[#C65656] hover:text-white transition duration-300"
+              >
+                Log out
+              </Button>
+            </>
+          ) : (
+            // Login Button
+            <NavLink to="/login">
+              <Button className="px-4 py-2 bg-[#C65656] text-white rounded-md hover:bg-[#9e4848] transition duration-300">
+                Login
+              </Button>
+            </NavLink>
+          )}
 
           {/* Mobile menu icon */}
           <button className="md:hidden focus:outline-none">
