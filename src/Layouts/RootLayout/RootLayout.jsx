@@ -9,10 +9,7 @@ const RootLayout = () => {
   return (
     <div className="m-0 p-0">
       <Navbar className="m-0 p-0" />
-      <main className="">
-        {/* or whatever your navbar height is */}
-        <Outlet />
-      </main>
+      <Outlet />
       <Footer></Footer>
     </div>
   );
