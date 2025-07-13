@@ -6,6 +6,8 @@ import Register from "../Layouts/pages/Register";
 import { HelmetProvider } from "react-helmet-async";
 import Dashboard from "../Layouts/pages/Dashboard/Dashboard";
 import PrivateRoute from "../Route/PrivateRoute";
+import AllTrainers from "../Layouts/pages/Trainers/AllTrainers";
+import TrainerDetails from "../Layouts/pages/Trainers/TrainerDetails";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +29,14 @@ export const router = createBrowserRouter([
       {
         path: "/register",
         Component: Register,
+      },
+      {
+        path: "/trainers",
+        Component: AllTrainers,
+      },
+      {
+        path: `/trainers/:id`,
+        Component: TrainerDetails,
       },
     ],
   },

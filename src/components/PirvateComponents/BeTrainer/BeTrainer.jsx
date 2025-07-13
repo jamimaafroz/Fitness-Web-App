@@ -13,18 +13,19 @@ const daysOptions = [
   { value: "Friday", label: "Friday" },
   { value: "Saturday", label: "Saturday" },
 ];
+const initialFormState = {
+  fullName: "",
+  age: "",
+  image: "",
+  skills: [],
+  days: [],
+  time: "",
+  otherInfo: "",
+};
 
 const BeATrainer = () => {
   const { user } = useAuth();
-  const [formData, setFormData] = useState({
-    fullName: "",
-    age: "",
-    image: "",
-    skills: [],
-    days: [],
-    time: "",
-    otherInfo: "",
-  });
+  const [formData, setFormData] = useState(initialFormState);
 
   const handleCheckboxChange = (e) => {
     const { value, checked } = e.target;
@@ -43,27 +44,31 @@ const BeATrainer = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const trainerInfo = {
-      ...formData,
-      email: user.email,
-      status: "pending",
-    };
-
+  async function createTrainer(trainerData) {
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/be-a-trainer",
-        trainerInfo
+        "http://localhost:3000/trainers",
+        trainerData
       );
-      if (res.data.insertedId) {
-        toast.success("Application Submitted! 🎉");
-      }
-    } catch (err) {
-      toast.error("Submission failed 😥");
-      console.error(err);
+      toast.success("Trainer application submitted successfully!");
+      console.log("Trainer created with ID:", res.data.id);
+      setFormData(initialFormState);
+      // Optionally clear form or redirect
+    } catch (error) {
+      toast.error("Failed to submit application.");
+      console.error(
+        "Error creating trainer:",
+        error.response?.data || error.message
+      );
     }
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const trainerData = { ...formData, name: formData.fullName };
+    delete trainerData.fullName;
+
+    createTrainer(trainerData);
   };
 
   return (
