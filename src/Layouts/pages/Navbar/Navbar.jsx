@@ -1,5 +1,5 @@
-import React from "react";
-import { Menu } from "lucide-react";
+import React, { useState } from "react";
+import { Menu, X } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import useAuth from "../../../Hooks/useAuth";
@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 const Navbar = () => {
   const { user, logOut } = useAuth();
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleSignOut = () => {
     logOut()
@@ -22,55 +23,46 @@ const Navbar = () => {
       });
   };
 
+  const navLinks = [
+    { path: "/", label: "Home" },
+    { path: "/trainers", label: "Trainers" },
+    { path: "/classes", label: "Classes" },
+    { path: "/community", label: "Community" },
+  ];
+
+  if (user) {
+    navLinks.push({ path: "/dashboard", label: "Dashboard" });
+  }
+
   return (
-    <header className="absolute top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-sm ">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md shadow-md">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/">
-          <h1 className="text-2xl font-bold text-primary cursor-pointer select-none">
-            <Logo />
-          </h1>
+        <Link to="/" className="text-2xl font-bold text-primary">
+          <Logo />
         </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex gap-6 items-center">
-          {["/", "/trainers", "/classes", "/community"].map((path, i) => {
-            const labels = ["Home", "Trainers", "Classes", "Community"];
-            return (
-              <NavLink
-                key={path}
-                to={path}
-                className={({ isActive }) =>
-                  `text-xl font-bold transition-colors duration-300 ${
-                    isActive ? "text-[#C65656]" : "hover:text-[#C65656]"
-                  }`
-                }
-              >
-                {labels[i]}
-              </NavLink>
-            );
-          })}
-
-          {/* Show dashboard link if logged in */}
-          {user && (
+          {navLinks.map(({ path, label }) => (
             <NavLink
-              to="/dashboard"
+              key={path}
+              to={path}
               className={({ isActive }) =>
-                `text-xl font-bold transition-colors duration-300 ${
+                `text-lg font-semibold transition-colors duration-300 ${
                   isActive ? "text-[#C65656]" : "hover:text-[#C65656]"
                 }`
               }
             >
-              Dashboard
+              {label}
             </NavLink>
-          )}
+          ))}
         </nav>
 
-        {/* Auth Buttons + Avatar */}
-        <div className="flex items-center gap-4">
+        {/* Right Side - Auth Buttons */}
+        <div className="hidden md:flex items-center gap-4">
           {user ? (
             <>
-              {/* Profile Picture */}
               <img
                 src={
                   user.photoURL ||
@@ -80,30 +72,79 @@ const Navbar = () => {
                 className="w-9 h-9 rounded-full object-cover border-2 border-[#C65656]"
                 title={user.displayName || "User"}
               />
-
-              {/* Log Out Button */}
               <Button
                 onClick={handleSignOut}
-                className="px-4 py-2 text-[#C65656] border border-[#C65656] rounded-md hover:bg-[#C65656] hover:text-white transition duration-300"
+                className="text-[#C65656] border border-[#C65656] hover:bg-[#C65656] hover:text-white"
               >
                 Log out
               </Button>
             </>
           ) : (
-            // Login Button
             <NavLink to="/login">
-              <Button className="px-4 py-2 bg-[#C65656] text-white rounded-md hover:bg-[#9e4848] transition duration-300">
+              <Button className="bg-[#C65656] text-white hover:bg-[#9e4848]">
                 Login
               </Button>
             </NavLink>
           )}
-
-          {/* Mobile menu icon */}
-          <button className="md:hidden focus:outline-none">
-            <Menu className="h-6 w-6 text-primary hover:text-primary/80 transition-colors duration-200" />
-          </button>
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden"
+          onClick={() => setMobileOpen(!mobileOpen)}
+        >
+          {mobileOpen ? (
+            <X className="h-6 w-6 text-[#C65656]" />
+          ) : (
+            <Menu className="h-6 w-6 text-[#C65656]" />
+          )}
+        </button>
       </div>
+
+      {/* Mobile Nav Menu */}
+      {mobileOpen && (
+        <div className="md:hidden bg-white border-t shadow-md py-4 px-6 space-y-4 transition-all">
+          {navLinks.map(({ path, label }) => (
+            <NavLink
+              key={path}
+              to={path}
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+                `block text-lg font-semibold ${
+                  isActive ? "text-[#C65656]" : "text-gray-700"
+                } hover:text-[#C65656]`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
+
+          {user ? (
+            <div className="flex items-center justify-between">
+              <img
+                src={
+                  user.photoURL ||
+                  "https://i.ibb.co/Gv1qf3v/default-profile.png"
+                }
+                alt="User"
+                className="w-8 h-8 rounded-full border border-[#C65656]"
+              />
+              <Button
+                onClick={handleSignOut}
+                className="text-[#C65656] border border-[#C65656] hover:bg-[#C65656] hover:text-white text-sm"
+              >
+                Log out
+              </Button>
+            </div>
+          ) : (
+            <NavLink to="/login" onClick={() => setMobileOpen(false)}>
+              <Button className="w-full bg-[#C65656] text-white hover:bg-[#9e4848] text-sm">
+                Login
+              </Button>
+            </NavLink>
+          )}
+        </div>
+      )}
     </header>
   );
 };
