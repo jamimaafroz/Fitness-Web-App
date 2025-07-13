@@ -1,6 +1,6 @@
 import React from "react";
 import { Menu } from "lucide-react";
-import { Link, NavLink, useNavigate } from "react-router"; // ✅ Use react-router-dom!
+import { Link, NavLink, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import useAuth from "../../../Hooks/useAuth";
 import Logo from "../../../Hooks/Logo";
