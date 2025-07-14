@@ -10,10 +10,12 @@ import { Link, useNavigate } from "react-router";
 import { FcGoogle } from "react-icons/fc";
 import CustomHelmet from "../../components/ui/Meta/CustomHelmet";
 import { toast } from "react-toastify";
+import useAxios from "../../Hooks/useAxios";
 
 const Register = () => {
   const { createUser, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const axiosInstance = useAxios();
 
   const {
     register,
@@ -26,6 +28,16 @@ const Register = () => {
     try {
       const result = await createUser(data.email, data.password);
       const user = result.user;
+      //Update user Info in database
+      const userinfo = {
+        email: data.email,
+        role: "user",
+        created_at: new Date().toISOString(),
+        last_log_in: new Date().toISOString(),
+      };
+
+      const useRes = await axiosInstance.post("/users", userinfo);
+      console.log(useRes.data);
 
       // Update Firebase Profile with Name & Photo URL
       await updateProfile(user, {
