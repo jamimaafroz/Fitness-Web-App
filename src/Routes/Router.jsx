@@ -8,6 +8,7 @@ import Dashboard from "../Layouts/pages/Dashboard/Dashboard";
 import PrivateRoute from "../Route/PrivateRoute";
 import AllTrainers from "../Layouts/pages/Trainers/AllTrainers";
 import TrainerDetails from "../Layouts/pages/Trainers/TrainerDetails";
+import TrainerBookingPage from "../Layouts/pages/Trainers/TrainerBookingPage";
 
 export const router = createBrowserRouter([
   {
@@ -37,6 +38,14 @@ export const router = createBrowserRouter([
       {
         path: `/trainers/:id`,
         Component: TrainerDetails,
+      },
+      {
+        path: `/booking/:id`,
+        element: (
+          <PrivateRoute>
+            <TrainerBookingPage></TrainerBookingPage>
+          </PrivateRoute>
+        ),
       },
     ],
   },

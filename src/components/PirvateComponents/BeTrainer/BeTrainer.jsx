@@ -3,6 +3,7 @@ import Select from "react-select";
 import useAuth from "../../../Hooks/useAuth";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { Button } from "../../ui/button";
 
 const daysOptions = [
   { value: "Sunday", label: "Sunday" },
@@ -152,10 +153,14 @@ const BeATrainer = () => {
           setFormData({ ...formData, otherInfo: e.target.value })
         }
       ></textarea>
-
-      <button type="submit" className="w-full bg-[#C65656] text-white">
+      <Button
+        type="submit"
+        variant="default" // or 'secondary', 'destructive', etc.
+        size="lg" // sm, default, lg, icon
+        className="w-full border-[0.5px] border-[rgb(228,103,103)] text-[#C65656]   shadow-2xl hover:cursor-pointer"
+      >
         Apply Now
-      </button>
+      </Button>
     </form>
   );
 };

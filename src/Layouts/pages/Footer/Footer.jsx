@@ -17,7 +17,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-gray-100 py-8">
+    <footer className="bg-gray-100 py-24">
       <div className="container mx-auto px-6 md:flex md:items-center md:justify-between">
         {/* Logo + Title */}
         <div className="mb-6 md:mb-0">

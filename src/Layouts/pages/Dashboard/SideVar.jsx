@@ -18,7 +18,9 @@ const SideVar = ({ section }) => {
   const { user } = useAuth();
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-4 text-[#C65656]">{section}</h1>
+      <h1 className="text-4xl font-semibold mb-4 text-[#C65656] text-center">
+        {section}
+      </h1>
       {sectionComponents[section] || (
         <p>Welcome to the {user?.displayName || "user"}s dashboard!</p>
       )}

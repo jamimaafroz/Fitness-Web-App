@@ -14,6 +14,17 @@ const TrainerDetails = () => {
       .catch((err) => console.error("Failed to fetch trainer:", err));
   }, [id]);
 
+  // Handle slot click: redirect to booking page with state
+  const handleSlotClick = (slot) => {
+    navigate(`/booking/${trainer._id}?slot=${slot}`, {
+      state: {
+        trainerName: trainer.name,
+        selectedSlot: slot,
+        classes: trainer.classes || "Not specified",
+      },
+    });
+  };
+
   if (!trainer) return <p className="text-center mt-10">Loading...</p>;
 
   return (
@@ -27,7 +38,7 @@ const TrainerDetails = () => {
           Join our team of certified trainers and make a difference.
         </p>
         <Link to="/dashboard">
-          <button className="bg-[#C65656] text-white hover:bg-[#9e3d3d]">
+          <button className="bg-[#C65656] text-white px-4 py-2 rounded hover:bg-[#9e3d3d] transition">
             Become a Trainer
           </button>
         </Link>
@@ -61,17 +72,18 @@ const TrainerDetails = () => {
 
       {/* Available Slots */}
       <div>
-        <h3 className="text-2xl font-semibold mb-4">Available Slots 🕒</h3>
+        <h3 className="text-2xl font-semibold mb-4 text-[#C65656]">
+          Available Slots 🕒
+        </h3>
         <div className="flex flex-wrap gap-3">
           {trainer.days?.length > 0 ? (
-            trainer.days.map((day, i) => (
+            trainer.days.map((slot, i) => (
               <button
                 key={i}
-                variant="outline"
-                onClick={() => navigate(`/booking/${trainer._id}?day=${day}`)}
-                className="hover:bg-[#C65656] hover:text-white transition"
+                onClick={() => handleSlotClick(slot)}
+                className="px-4 py-2 border rounded text-[#C65656] border-[#C65656] hover:bg-[#C65656] hover:text-white transition duration-200"
               >
-                {day} - {trainer.time || "Time not set"}
+                {slot} - {trainer.time || "Time not set"}
               </button>
             ))
           ) : (

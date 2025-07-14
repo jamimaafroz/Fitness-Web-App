@@ -5,6 +5,9 @@ import { Link } from "react-router";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from "../../../components/ui/sheet";
 import useAuth from "../../../Hooks/useAuth";
@@ -30,7 +33,7 @@ const LeftVar = ({ setActiveSection }) => {
   };
 
   return (
-    <aside className="h-full hidden md:flex flex-col justify-between p-4 border-r w-[250px] bg-white shadow-md">
+    <aside className="h-full md:flex flex-col justify-between p-4 border-r w-[250px] bg-gray-100 shadow-md">
       <div>
         <h1 className="text-2xl font-bold mb-6 text-[#C65656]">
           ZenithFit Dashboard
@@ -48,16 +51,16 @@ const LeftVar = ({ setActiveSection }) => {
         </nav>
       </div>
 
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         <Link to="/">
-          <Button className="w-full justify-start gap-2  hover:cursor-pointer hover:text-[#C65656]">
+          <Button className="w-full justify-start gap-2 bg-white hover:cursor-pointer hover:text-[#C65656]">
             <FaHome className="w-5 h-5" />
             Home
           </Button>
         </Link>
 
         <Button
-          className="w-full justify-start gap-2 hover:cursor-pointer hover:text-[#C65656] "
+          className="w-full justify-start gap-2 bg-white hover:cursor-pointer hover:text-[#C65656] "
           onClick={handleLogout}
         >
           <MdLogout className="w-5 h-5" />
@@ -68,7 +71,8 @@ const LeftVar = ({ setActiveSection }) => {
   );
 };
 
-export const MobileLeftVar = () => {
+// Add setActiveSection to MobileLeftVar props
+export const MobileLeftVar = ({ setActiveSection }) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -77,7 +81,14 @@ export const MobileLeftVar = () => {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-[250px] bg-white">
-        <LeftVar />
+        <SheetHeader>
+          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          <SheetDescription className="sr-only">
+            This is the main navigation menu for the dashboard.
+          </SheetDescription>
+        </SheetHeader>
+        {/* Pass setActiveSection here */}
+        <LeftVar setActiveSection={setActiveSection} />
       </SheetContent>
     </Sheet>
   );
