@@ -1,1 +1,17 @@
 @import "tailwindcss";
+/* index.css */
+.custom-toast {
+  background-color: white !important;
+  color: #333 !important;
+  font-weight: 600;
+  padding: 16px 20px !important;
+  border-radius: 12px !important;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.15) !important;
+  border-left: 6px solid #C65656 !important;
+}
+
+.custom-toast-body {
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  text-align: center;
+}

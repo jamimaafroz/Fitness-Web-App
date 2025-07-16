@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router";
 import { FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
+import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 
 const AllTrainers = () => {
   const [trainers, setTrainers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const axiosSecure = useAxiosSecure();
 
   useEffect(() => {
-    // Fetch trainers from backend
-    axios
-      .get("http://localhost:3000/trainers")
+    axiosSecure
+      .get("/trainers")
       .then((res) => {
         setTrainers(res.data);
       })
       .catch((err) => {
-        console.error("Failed to fetch trainers:", err);
+        console.error("JWT failed:", err.response?.data || err);
       })
       .finally(() => setLoading(false));
   }, []);

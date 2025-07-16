@@ -9,6 +9,7 @@ import PrivateRoute from "../Route/PrivateRoute";
 import AllTrainers from "../Layouts/pages/Trainers/AllTrainers";
 import TrainerDetails from "../Layouts/pages/Trainers/TrainerDetails";
 import TrainerBookingPage from "../Layouts/pages/Trainers/TrainerBookingPage";
+import Payment from "../Layouts/pages/Dashboard/Payment/Payment";
 
 export const router = createBrowserRouter([
   {
@@ -44,6 +45,14 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <TrainerBookingPage></TrainerBookingPage>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/payment",
+        element: (
+          <PrivateRoute>
+            <Payment />
           </PrivateRoute>
         ),
       },

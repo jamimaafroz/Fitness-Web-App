@@ -1,21 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { updateProfile } from "firebase/auth"; // 🧠 Needed to update Firebase profile
+import { updateProfile } from "firebase/auth";
+import {
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  getStorage,
+} from "firebase/storage";
 import useAuth from "../../Hooks/useAuth";
 import { Link, useNavigate } from "react-router";
 import { FcGoogle } from "react-icons/fc";
 import CustomHelmet from "../../components/ui/Meta/CustomHelmet";
 import { toast } from "react-toastify";
+import axios from "axios";
 import useAxios from "../../Hooks/useAxios";
 
 const Register = () => {
   const { createUser, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const axiosInstance = useAxios();
+  const storage = getStorage();
+
+  const [uploading, setUploading] = useState(false);
 
   const {
     register,
@@ -24,43 +34,88 @@ const Register = () => {
     watch,
   } = useForm();
 
+  // const auth = getAuth();
+  // const storage = getStorage();
+
+  // Helper to save user in backend & get JWT
+  const saveUserAndGetToken = async (email, photoURL) => {
+    const userinfo = {
+      email,
+      role: "user",
+      created_at: new Date().toISOString(),
+      last_log_in: new Date().toISOString(),
+      photoURL,
+    };
+    await axiosInstance.post("/users", userinfo);
+    const { data } = await axios.post("http://localhost:3000/jwt", { email });
+    localStorage.setItem("fit-access-token", data.token);
+  };
+
   const onSubmit = async (data) => {
     try {
+      setUploading(true);
+
+      const file = data.photo[0]; // Get the uploaded file
+
+      // 1. Create user in Firebase
       const result = await createUser(data.email, data.password);
       const user = result.user;
-      //Update user Info in database
-      const userinfo = {
-        email: data.email,
-        role: "user",
-        created_at: new Date().toISOString(),
-        last_log_in: new Date().toISOString(),
-      };
 
-      const useRes = await axiosInstance.post("/users", userinfo);
-      console.log(useRes.data);
+      // 2. Upload profile pic to Firebase Storage
+      const storageRef = ref(
+        storage,
+        `profilePictures/${user.uid}/${file.name}`
+      );
+      const uploadTask = uploadBytesResumable(storageRef, file);
 
-      // Update Firebase Profile with Name & Photo URL
-      await updateProfile(user, {
-        displayName: data.name,
-        photoURL: data.photoURL,
-      });
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(`Upload is ${progress}% done`);
+        },
+        (error) => {
+          console.error("Upload failed:", error);
+          toast.error("Image upload failed");
+          setUploading(false);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
 
-      console.log("User created & profile updated:", user);
-      toast.success("Signned in successfully!");
+          await updateProfile(user, {
+            displayName: data.name,
+            photoURL: downloadURL,
+          });
 
-      navigate("/");
+          await saveUserAndGetToken(user.email, downloadURL);
+
+          toast.success("Registered & logged in successfully!");
+          setUploading(false);
+          navigate("/");
+        }
+      );
     } catch (error) {
       console.error("Registration error:", error.message);
+      toast.error("Registration failed. Please try again.");
+      setUploading(false);
     }
   };
-  const handleGoogleSignIn = () => {
-    signInWithGoogle()
-      .then((result) => {
-        console.log("Google Sign In Result:", result.user);
-        toast.success("Signned in successfully!");
-        navigate("/");
-      })
-      .catch((error) => console.error("Google Sign In Error:", error));
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithGoogle();
+      const user = result.user;
+
+      // Save user & JWT, photoURL from Firebase user profile
+      await saveUserAndGetToken(user.email, user.photoURL || "");
+
+      toast.success("Signed in with Google successfully!");
+      navigate("/");
+    } catch (error) {
+      console.error("Google Sign In Error:", error);
+      toast.error("Google sign-in failed");
+    }
   };
 
   return (
@@ -94,18 +149,19 @@ const Register = () => {
               )}
             </div>
 
-            {/* Photo URL */}
+            {/* Profile Picture Upload */}
             <div>
-              <Label htmlFor="photoURL">Photo URL</Label>
+              <Label htmlFor="photo">Upload Profile Picture</Label>
               <Input
-                id="photoURL"
-                placeholder="Link to your profile picture"
-                {...register("photoURL", { required: "Photo URL is required" })}
+                id="photo"
+                type="file"
+                accept="image/*"
+                {...register("photo", {
+                  required: "Profile picture is required",
+                })}
               />
-              {errors.photoURL && (
-                <p className="text-sm text-red-500">
-                  {errors.photoURL.message}
-                </p>
+              {errors.photo && (
+                <p className="text-sm text-red-500">{errors.photo.message}</p>
               )}
             </div>
 
@@ -174,9 +230,10 @@ const Register = () => {
             <div className="space-y-4">
               <Button
                 type="submit"
+                disabled={uploading}
                 className="w-full border-[0.5px] border-[rgba(0,0,0,0.15)] shadow-2xl hover:cursor-pointer"
               >
-                Register
+                {uploading ? "Uploading..." : "Register"}
               </Button>
 
               <Button

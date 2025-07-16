@@ -1,13 +1,14 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button"; // if you're using shadcn/ui
-import { Input } from "@/components/ui/input"; // assuming you have this component too
-import { Label } from "@/components/ui/label"; // optional but cute
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Link, useLocation, useNavigate } from "react-router";
 import useAuth from "../../Hooks/useAuth";
 import { FcGoogle } from "react-icons/fc";
 import CustomHelmet from "../../components/ui/Meta/CustomHelmet";
 import { toast } from "react-toastify";
+import useAxios from "../../Hooks/useAxios";
 
 const Login = () => {
   const {
@@ -15,35 +16,55 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
-
   const { signIn, signInWithGoogle } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const form = location.state?.from || "/";
+  const from = location.state?.from || "/";
+  const axiosInstance = useAxios();
 
-  const onSubmit = (data) => {
-    console.log("Login Data:", data);
-    // You can handle login logic here
-    signIn(data.email, data.password)
-      .then((result) => {
-        console.log(result.user);
-        toast.success("Logged in successfully!");
-        navigate(form);
-      })
-      .catch((error) => console.log(error));
+  // Email/Password Login Handler
+  const onSubmit = async (data) => {
+    try {
+      const result = await signIn(data.email, data.password);
+      const user = result.user;
+
+      const res = await axiosInstance.post("/jwt", { email: user.email });
+      localStorage.setItem("fit-access-token", res.data.token);
+
+      toast.success("Logged in successfully!");
+      navigate(from);
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Login failed. Please try again.");
+    }
   };
 
-  // Handle Google Sign In
-  const handleGoogleSignIn = () => {
-    signInWithGoogle()
-      .then((result) => {
-        console.log("Google Sign In Result:", result.user);
-        toast.success("Logged in successfully!");
-        navigate(form);
-      })
-      .catch((error) => console.error("Google Sign In Error:", error));
+  // Google Sign-In Handler
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithGoogle();
+      const user = result.user;
+
+      const userinfo = {
+        email: user.email,
+        role: "user",
+        created_at: new Date().toISOString(),
+        last_log_in: new Date().toISOString(),
+      };
+
+      await axiosInstance.post("/users", userinfo);
+
+      const jwtRes = await axiosInstance.post("/jwt", { email: user.email });
+      localStorage.setItem("fit-access-token", jwtRes.data.token);
+
+      toast.success("Signed in successfully!");
+      navigate("/");
+    } catch (error) {
+      console.error("Google Sign-In Error:", error);
+      toast.error("Google sign-in failed");
+    }
   };
-  console.log("Login page rendering");
+
   return (
     <>
       <CustomHelmet title="Login" />
@@ -54,15 +75,12 @@ const Login = () => {
             "url('https://i.postimg.cc/DZgpbNZh/kike-vega-F2qh3yjz6-Jk-unsplash.jpg')",
         }}
       >
-        {/* Blurry overlay for nice effect */}
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-0"></div>
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-0" />
 
-        {/* Form container */}
         <div className="relative z-10 w-full max-w-md p-8 rounded-xl bg-white/30 backdrop-blur-md border border-white/30 shadow-lg space-y-6 mx-4">
           <h2 className="text-2xl font-bold text-center text-primary">Login</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Email */}
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
@@ -76,7 +94,6 @@ const Login = () => {
               )}
             </div>
 
-            {/* Password */}
             <div>
               <Label htmlFor="password">Password</Label>
               <Input
@@ -92,22 +109,16 @@ const Login = () => {
               )}
             </div>
 
-            {/* Submit */}
             <div className="space-y-4">
-              <Button
-                type="submit"
-                className="w-full border-[0.5px] border-[rgba(0,0,0,0.15)] bo shadow-2xl hover:cursor-pointer"
-              >
+              <Button type="submit" className="w-full border shadow-2xl">
                 Login
               </Button>
               <Button
-                type="submit"
-                className="w-full border-[0.5px] border-[rgba(0,0,0,0.15)] bo shadow-2xl hover:cursor-pointer"
+                type="button"
                 onClick={handleGoogleSignIn}
+                className="w-full border shadow-2xl flex items-center justify-center gap-2"
               >
-                <span>
-                  <FcGoogle />
-                </span>
+                <FcGoogle />
                 Sign in with Google
               </Button>
             </div>
