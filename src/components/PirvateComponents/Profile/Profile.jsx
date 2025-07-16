@@ -14,6 +14,7 @@ const Profile = () => {
     const fetchProfile = async () => {
       try {
         const res = await axiosSecure.get(`/users?email=${user.email}`);
+        console.log("Fetched profile data:", res.data);
         const userData = Array.isArray(res.data) ? res.data[0] : res.data;
         setProfile(userData);
       } catch (error) {

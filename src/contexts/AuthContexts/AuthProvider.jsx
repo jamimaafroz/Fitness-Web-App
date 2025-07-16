@@ -11,12 +11,14 @@ import {
 } from "firebase/auth";
 
 import { auth } from "../../firebase/firebase.init";
+import useAxios from "../../Hooks/useAxios"; // <-- added this import
 
 const googleProvider = new GoogleAuthProvider();
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const axiosInstance = useAxios(); // <-- initialize axios instance
 
   const createUser = (email, password) => {
     setLoading(true);
@@ -43,16 +45,31 @@ const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const unSubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      console.log("user in the auth state change", currentUser);
+    const unSubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          // Fetch full user profile from backend by email
+          const res = await axiosInstance.get(
+            `/users/search?email=${currentUser.email}`
+          );
+
+          if (res.data && res.data.length > 0) {
+            setUser(res.data[0]); // Set full user info including role, last login, profile pic
+          } else {
+            setUser(currentUser); // fallback to Firebase user object
+          }
+        } catch (error) {
+          console.error("Failed to fetch user profile:", error);
+          setUser(currentUser); // fallback if fetch fails
+        }
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
 
-    return () => {
-      unSubscribe();
-    };
-  }, []);
+    return () => unSubscribe();
+  }, [axiosInstance]);
 
   const authInfo = {
     user,
