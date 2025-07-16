@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Select from "react-select";
 import useAuth from "../../../Hooks/useAuth";
-import axios from "axios";
+import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import { toast } from "react-toastify";
 import { Button } from "../../ui/button";
 
@@ -14,6 +14,7 @@ const daysOptions = [
   { value: "Friday", label: "Friday" },
   { value: "Saturday", label: "Saturday" },
 ];
+
 const initialFormState = {
   fullName: "",
   age: "",
@@ -26,6 +27,7 @@ const initialFormState = {
 
 const BeATrainer = () => {
   const { user } = useAuth();
+  const axiosSecure = useAxiosSecure();
   const [formData, setFormData] = useState(initialFormState);
 
   const handleCheckboxChange = (e) => {
@@ -41,35 +43,43 @@ const BeATrainer = () => {
   const handleSelectChange = (selectedOptions) => {
     setFormData((prev) => ({
       ...prev,
-      days: selectedOptions.map((opt) => opt.value),
+      days: selectedOptions ? selectedOptions.map((opt) => opt.value) : [],
     }));
   };
 
-  async function createTrainer(trainerData) {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const trainerData = {
+      ...formData,
+      name: formData.fullName,
+      email: user.email,
+      status: "pending",
+    };
+    delete trainerData.fullName;
+
     try {
-      const res = await axios.post(
-        "http://localhost:3000/trainers",
-        trainerData
-      );
-      toast.success("Trainer application submitted successfully!");
-      console.log("Trainer created with ID:", res.data.id);
-      setFormData(initialFormState);
-      // Optionally clear form or redirect
+      const res = await axiosSecure.post("/trainers/apply", trainerData);
+
+      if (res.status === 201 && res.data.id) {
+        toast.success("Trainer application submitted successfully!");
+        setFormData(initialFormState);
+      } else if (res.status === 409) {
+        toast.error(
+          res.data.message || "You already applied or are a trainer."
+        );
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
     } catch (error) {
-      toast.error("Failed to submit application.");
+      toast.error(
+        error.response?.data?.message || "Failed to submit application."
+      );
       console.error(
         "Error creating trainer:",
         error.response?.data || error.message
       );
     }
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const trainerData = { ...formData, name: formData.fullName };
-    delete trainerData.fullName;
-
-    createTrainer(trainerData);
   };
 
   return (
@@ -85,6 +95,7 @@ const BeATrainer = () => {
         type="text"
         placeholder="Full Name"
         required
+        value={formData.fullName}
         className="w-full p-2 border rounded-md"
         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
       />
@@ -100,6 +111,7 @@ const BeATrainer = () => {
         type="number"
         placeholder="Age"
         required
+        value={formData.age}
         className="w-full p-2 border rounded-md"
         onChange={(e) => setFormData({ ...formData, age: e.target.value })}
       />
@@ -108,6 +120,7 @@ const BeATrainer = () => {
         type="text"
         placeholder="Profile Image URL"
         required
+        value={formData.image}
         className="w-full p-2 border rounded-md"
         onChange={(e) => setFormData({ ...formData, image: e.target.value })}
       />
@@ -120,6 +133,7 @@ const BeATrainer = () => {
               <input
                 type="checkbox"
                 value={skill}
+                checked={formData.skills.includes(skill)}
                 onChange={handleCheckboxChange}
               />
               {skill}
@@ -133,7 +147,9 @@ const BeATrainer = () => {
         <Select
           options={daysOptions}
           isMulti
+          isSearchable={false}
           onChange={handleSelectChange}
+          value={daysOptions.filter((opt) => formData.days.includes(opt.value))}
           className="mt-2"
         />
       </div>
@@ -142,6 +158,7 @@ const BeATrainer = () => {
         type="text"
         placeholder="Available Time (e.g., 8AM - 10AM)"
         required
+        value={formData.time}
         className="w-full p-2 border rounded-md"
         onChange={(e) => setFormData({ ...formData, time: e.target.value })}
       />
@@ -149,15 +166,17 @@ const BeATrainer = () => {
       <textarea
         placeholder="Other Information (optional)"
         className="w-full p-2 border rounded-md"
+        value={formData.otherInfo}
         onChange={(e) =>
           setFormData({ ...formData, otherInfo: e.target.value })
         }
       ></textarea>
+
       <Button
         type="submit"
-        variant="default" // or 'secondary', 'destructive', etc.
-        size="lg" // sm, default, lg, icon
-        className="w-full border-[0.5px] border-[rgb(228,103,103)] text-[#C65656]   shadow-2xl hover:cursor-pointer"
+        variant="default"
+        size="lg"
+        className="w-full border-[0.5px] border-[rgb(228,103,103)] text-[#C65656] shadow-2xl hover:cursor-pointer"
       >
         Apply Now
       </Button>

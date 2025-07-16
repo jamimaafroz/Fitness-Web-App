@@ -15,12 +15,21 @@ import { FaHome } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 
 const LeftVar = ({ setActiveSection }) => {
+  const { user } = useAuth();
   const navLinks = [
     { name: "User Profile" },
     { name: "Activity Log" },
     { name: "Be A Trainer" },
     { name: "Booked Trainer" },
+    { name: "Payment_History" },
+    { name: "Pending Trainer Requests" },
+
+    // <-- updated here
   ];
+  if (user?.role === "admin") {
+    navLinks.push({ name: "Make Admin" });
+  }
+
   const { logOut } = useAuth();
   const handleLogout = () => {
     logOut()

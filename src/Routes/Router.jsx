@@ -10,6 +10,9 @@ import AllTrainers from "../Layouts/pages/Trainers/AllTrainers";
 import TrainerDetails from "../Layouts/pages/Trainers/TrainerDetails";
 import TrainerBookingPage from "../Layouts/pages/Trainers/TrainerBookingPage";
 import Payment from "../Layouts/pages/Dashboard/Payment/Payment";
+import PaymentHistory from "../Layouts/pages/Dashboard/Payment/PaymentHistory";
+import PendingTrainers from "../components/PirvateComponents/BeTrainer/PendingTrainer";
+import MakeAdmin from "../components/PirvateComponents/makeAdmin";
 
 export const router = createBrowserRouter([
   {
@@ -65,5 +68,19 @@ export const router = createBrowserRouter([
         <Dashboard />
       </PrivateRoute>
     ),
+    children: [
+      {
+        path: "paymentHistory",
+        element: <PaymentHistory />,
+      },
+      {
+        path: "pendingTrainer",
+        element: <PendingTrainers />,
+      },
+      {
+        path: "makeadmin",
+        element: <MakeAdmin />,
+      },
+    ],
   },
 ]);

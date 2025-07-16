@@ -12,14 +12,16 @@ const AllTrainers = () => {
     axiosSecure
       .get("/trainers")
       .then((res) => {
-        setTrainers(res.data);
+        const approvedTrainers = res.data.filter(
+          (t) => t.status === "approved"
+        );
+        setTrainers(approvedTrainers);
       })
       .catch((err) => {
         console.error("JWT failed:", err.response?.data || err);
       })
       .finally(() => setLoading(false));
   }, []);
-
   if (loading) return <p className="text-center mt-10">Loading trainers...</p>;
 
   return (

@@ -1,16 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import axios from "axios";
-import useAuth from "../Hooks/useAuth"; // your auth hook to manage logout
-
-const axiosSecure = axios.create({
-  baseURL: "http://localhost:3000",
-});
+import useAuth from "../Hooks/useAuth";
 
 const useAxiosSecure = () => {
   const { logout } = useAuth();
 
+  // Use useMemo to create axios instance only once
+  const axiosSecure = useMemo(() => {
+    return axios.create({
+      baseURL: "http://localhost:3000",
+    });
+  }, []);
+
   useEffect(() => {
-    // Add request interceptor
     const requestInterceptor = axiosSecure.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem("fit-access-token");
@@ -22,7 +24,6 @@ const useAxiosSecure = () => {
       (error) => Promise.reject(error)
     );
 
-    // Add response interceptor
     const responseInterceptor = axiosSecure.interceptors.response.use(
       (response) => response,
       (error) => {
@@ -30,19 +31,17 @@ const useAxiosSecure = () => {
           error.response &&
           (error.response.status === 401 || error.response.status === 403)
         ) {
-          // Unauthorized or forbidden - log user out
           logout();
         }
         return Promise.reject(error);
       }
     );
 
-    // Cleanup interceptors on unmount
     return () => {
       axiosSecure.interceptors.request.eject(requestInterceptor);
       axiosSecure.interceptors.response.eject(responseInterceptor);
     };
-  }, [logout]);
+  }, [logout, axiosSecure]);
 
   return axiosSecure;
 };
