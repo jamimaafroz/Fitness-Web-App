@@ -4,6 +4,7 @@ import CustomHelmet from "../../../components/ui/Meta/CustomHelmet";
 import Banner from "../Banner/Banner";
 import FeaturedSection from "../FeaturedSection/FeaturedSection";
 import AboutSection from "../AboutSection/AboutSection";
+import TrainerTeam from "../Trainers/TrainerTeam";
 
 const Home = () => {
   return (
@@ -13,6 +14,7 @@ const Home = () => {
         <Banner />
         <FeaturedSection></FeaturedSection>
         <AboutSection />
+        <TrainerTeam></TrainerTeam>
       </section>
     </>
   );
