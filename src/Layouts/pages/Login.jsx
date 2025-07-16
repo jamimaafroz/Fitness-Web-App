@@ -28,7 +28,12 @@ const Login = () => {
       const result = await signIn(data.email, data.password);
       const user = result.user;
 
-      const res = await axiosInstance.post("/jwt", { email: user.email });
+      // 🔥 Fetch full user info including role
+      const userRes = await axiosInstance.get(`/users?email=${user.email}`);
+      const fullUser = userRes.data[0];
+
+      // ✅ Pass full user with role to the /jwt endpoint
+      const res = await axiosInstance.post("/jwt", fullUser);
       localStorage.setItem("fit-access-token", res.data.token);
 
       toast.success("Logged in successfully!");
@@ -47,14 +52,19 @@ const Login = () => {
 
       const userinfo = {
         email: user.email,
-        role: "user",
+        role: "member", // or set default role here
         created_at: new Date().toISOString(),
         last_log_in: new Date().toISOString(),
       };
 
       await axiosInstance.post("/users", userinfo);
 
-      const jwtRes = await axiosInstance.post("/jwt", { email: user.email });
+      // 🔥 Fetch full user info from DB
+      const userRes = await axiosInstance.get(`/users?email=${user.email}`);
+      const fullUser = userRes.data[0];
+
+      // ✅ Send full user to /jwt
+      const jwtRes = await axiosInstance.post("/jwt", fullUser);
       localStorage.setItem("fit-access-token", jwtRes.data.token);
 
       toast.success("Signed in successfully!");

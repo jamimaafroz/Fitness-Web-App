@@ -5,6 +5,7 @@ import Banner from "../Banner/Banner";
 import FeaturedSection from "../FeaturedSection/FeaturedSection";
 import AboutSection from "../AboutSection/AboutSection";
 import TrainerTeam from "../Trainers/TrainerTeam";
+import NewsletterSubscription from "../FeaturedSection/NewsletterSubscription";
 
 const Home = () => {
   return (
@@ -15,6 +16,7 @@ const Home = () => {
         <FeaturedSection></FeaturedSection>
         <AboutSection />
         <TrainerTeam></TrainerTeam>
+        <NewsletterSubscription></NewsletterSubscription>
       </section>
     </>
   );

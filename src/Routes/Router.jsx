@@ -13,6 +13,7 @@ import Payment from "../Layouts/pages/Dashboard/Payment/Payment";
 import PaymentHistory from "../Layouts/pages/Dashboard/Payment/PaymentHistory";
 import PendingTrainers from "../components/PirvateComponents/BeTrainer/PendingTrainer";
 import MakeAdmin from "../components/PirvateComponents/makeAdmin";
+import BookedTrainer from "../components/PirvateComponents/BookedTrainer";
 
 export const router = createBrowserRouter([
   {
@@ -80,6 +81,11 @@ export const router = createBrowserRouter([
       {
         path: "makeadmin",
         element: <MakeAdmin />,
+      },
+
+      {
+        path: "booked-trainer/:id", // no leading slash here in nested routes
+        element: <BookedTrainer />,
       },
     ],
   },

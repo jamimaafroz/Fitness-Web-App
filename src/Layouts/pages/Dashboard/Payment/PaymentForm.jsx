@@ -1,6 +1,6 @@
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import React, { useState } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams, useNavigate } from "react-router";
 import useAxiosSecure from "../../../../Hooks/useAxiosSecure";
 import useAuth from "../../../../Hooks/useAuth";
 
@@ -10,81 +10,92 @@ const PaymentForm = () => {
   const elements = useElements();
   const [searchParams] = useSearchParams();
   const axiosSecure = useAxiosSecure();
+  const navigate = useNavigate();
+
   const trainerId = searchParams.get("trainerId");
   const slot = searchParams.get("slot");
   const plan = searchParams.get("plan");
   const cost = searchParams.get("cost");
 
-  console.log("Trainer ID:", trainerId);
-  console.log("Slot:", slot);
-  console.log("Plan:", plan);
-  console.log("Cost to pay:", cost);
-  const amount = cost * 100;
-
-  console.log("Amount in cents:", amount);
+  const amount = Number(cost) * 100; // Convert to cents
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!stripe || !elements) return;
 
+    setLoading(true);
     const card = elements.getElement(CardElement);
     if (!card) return;
 
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
+    const { error: pmError } = await stripe.createPaymentMethod({
       type: "card",
       card,
     });
 
-    if (error) {
-      setError(error.message);
-      console.error("Error creating payment method:", error);
+    if (pmError) {
+      setError(pmError.message);
+      setLoading(false);
+      return;
     } else {
       setError("");
-      console.log("Payment method created successfully:", paymentMethod);
     }
 
-    // Here you would typically send the paymentMethod.id to your server
-    const res = await axiosSecure.post(`/create-payment-intent`, {
-      amount: amount,
-    });
-    const clientSecret = res.data.clientSecret;
+    try {
+      // Create payment intent on server
+      const res = await axiosSecure.post(`/create-payment-intent`, {
+        amount,
+      });
+      const clientSecret = res.data.clientSecret;
 
-    const result = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: elements.getElement(CardElement),
-        billing_details: {
-          name: user.displayName,
-          email: user.email, // Replace with actual customer name
+      const result = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card,
+          billing_details: {
+            name: user?.displayName || "Anonymous",
+            email: user?.email || "no-email@example.com",
+          },
         },
-      },
-    });
-    if (result.error) {
-      setError(result.error.message);
-    } else {
+      });
+
+      if (result.error) {
+        setError(result.error.message);
+        setLoading(false);
+        return;
+      }
+
       if (result.paymentIntent.status === "succeeded") {
         setError("");
-        console.log("Payment successful!");
-        console.log(result);
-        // Optionally, you can handle post-payment actions here
-        //payment hisatory
+        console.log("Payment successful!", result);
+
+        // Save booking/payment info to backend
         const paymentData = {
           userEmail: user.email,
           trainerId,
           slot,
           plan,
-          amount: cost * 100,
+          amount: Number(cost), // store as dollars
           transactionId: result.paymentIntent.id,
           date: new Date(),
         };
 
-        await axiosSecure.post("/payments/save", paymentData);
+        const saveRes = await axiosSecure.post("/payments/save", paymentData);
+        if (saveRes.status === 201) {
+          // Redirect to booked trainer page
+          navigate(`/dashboard/booked-trainer/${trainerId}`);
+        } else {
+          setError("Failed to save booking info");
+        }
       }
+    } catch (err) {
+      console.error(err);
+      setError("Payment failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    console.log("res from amount", res);
   };
 
   return (
@@ -103,13 +114,9 @@ const PaymentForm = () => {
                   fontSize: "16px",
                   color: "#1a202c",
                   fontFamily: "Inter, sans-serif",
-                  "::placeholder": {
-                    color: "#a0aec0",
-                  },
+                  "::placeholder": { color: "#a0aec0" },
                 },
-                invalid: {
-                  color: "#e53e3e",
-                },
+                invalid: { color: "#e53e3e" },
               },
             }}
           />
@@ -117,11 +124,12 @@ const PaymentForm = () => {
 
         <button
           type="submit"
-          disabled={!stripe}
-          className="w-full py-3 rounded-lg bg-[#C65656] text-white text-lg font-medium shadow-md hover:bg-blue-700 transition-all duration-300 disabled:opacity-60"
+          disabled={!stripe || loading}
+          className="w-full py-3 rounded-lg bg-[#C65656] text-white text-lg font-medium shadow-md hover:bg-[#a84242] transition-all duration-300 disabled:opacity-60"
         >
-          Pay Now
+          {loading ? "Processing..." : "Pay Now"}
         </button>
+
         {error && <p className="text-red-500 text-center mt-4">{error}</p>}
       </form>
     </div>

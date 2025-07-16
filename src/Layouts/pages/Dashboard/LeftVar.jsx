@@ -15,30 +15,35 @@ import { FaHome } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 
 const LeftVar = ({ setActiveSection }) => {
-  const { user } = useAuth();
-  const navLinks = [
-    { name: "User Profile" },
-    { name: "Activity Log" },
-    { name: "Be A Trainer" },
-    { name: "Booked Trainer" },
-    { name: "Payment_History" },
-    { name: "Pending Trainer Requests" },
+  const { user, logOut } = useAuth();
 
-    // <-- updated here
+  const baseLinks = [
+    "User Profile",
+    "Activity Log",
+    "Be A Trainer",
+    "Booked Trainer",
+    "Payment History",
+    "Pending Trainer Requests", // Fixed comma here
+    "Newsletter Subscribers",
   ];
-  if (user?.role === "admin") {
-    navLinks.push({ name: "Make Admin" });
+
+  // ONLY normal users/members get these extra links:
+  const extraLinks = [];
+
+  if (user?.role === "member") {
+    extraLinks.push("Forum", "Manage Slots", "Add Slot");
   }
 
-  const { logOut } = useAuth();
+  if (user?.role === "admin") {
+    extraLinks.push("Make Admin");
+  }
+
+  const navLinks = [...baseLinks, ...extraLinks];
+
   const handleLogout = () => {
     logOut()
-      .then(() => {
-        console.log("Logged out successfully!");
-      })
-      .catch((err) => {
-        console.error("Failed to log out:", err);
-      });
+      .then(() => console.log("Logged out successfully!"))
+      .catch((err) => console.error("Failed to log out:", err));
   };
 
   return (
@@ -48,15 +53,24 @@ const LeftVar = ({ setActiveSection }) => {
           ZenithFit Dashboard
         </h1>
         <nav className="space-y-2">
-          {navLinks.map(({ name }) => (
-            <button
-              key={name}
-              onClick={() => setActiveSection(name)}
-              className="w-full text-left px-4 py-2 rounded hover:bg-[#f8d7da] hover:text-[#C65656] transition"
-            >
-              {name}
-            </button>
-          ))}
+          {navLinks.map((name) => {
+            // Hide Activity Log if user is not a member
+            if (name === "Activity Log" && user?.role !== "member") return null;
+
+            // Hide Newsletter Subscribers if user is not admin
+            if (name === "Newsletter Subscribers" && user?.role !== "admin")
+              return null;
+
+            return (
+              <button
+                key={name}
+                onClick={() => setActiveSection(name)}
+                className="w-full text-left px-4 py-2 rounded hover:bg-[#f8d7da] hover:text-[#C65656] transition"
+              >
+                {name}
+              </button>
+            );
+          })}
         </nav>
       </div>
 
@@ -69,7 +83,7 @@ const LeftVar = ({ setActiveSection }) => {
         </Link>
 
         <Button
-          className="w-full justify-start gap-2 bg-white hover:cursor-pointer hover:text-[#C65656] "
+          className="w-full justify-start gap-2 bg-white hover:cursor-pointer hover:text-[#C65656]"
           onClick={handleLogout}
         >
           <MdLogout className="w-5 h-5" />
@@ -80,7 +94,7 @@ const LeftVar = ({ setActiveSection }) => {
   );
 };
 
-// Add setActiveSection to MobileLeftVar props
+// Mobile version with prop
 export const MobileLeftVar = ({ setActiveSection }) => {
   return (
     <Sheet>
@@ -96,7 +110,6 @@ export const MobileLeftVar = ({ setActiveSection }) => {
             This is the main navigation menu for the dashboard.
           </SheetDescription>
         </SheetHeader>
-        {/* Pass setActiveSection here */}
         <LeftVar setActiveSection={setActiveSection} />
       </SheetContent>
     </Sheet>
