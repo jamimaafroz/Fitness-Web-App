@@ -2,9 +2,11 @@ import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import React, { useState } from "react";
 import { useSearchParams } from "react-router";
 import useAxiosSecure from "../../../../Hooks/useAxiosSecure";
+import useAuth from "../../../../Hooks/useAuth";
 
 const PaymentForm = () => {
   const stripe = useStripe();
+  const { user } = useAuth();
   const elements = useElements();
   const [searchParams] = useSearchParams();
   const axiosSecure = useAxiosSecure();
@@ -48,6 +50,40 @@ const PaymentForm = () => {
     const res = await axiosSecure.post(`/create-payment-intent`, {
       amount: amount,
     });
+    const clientSecret = res.data.clientSecret;
+
+    const result = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: elements.getElement(CardElement),
+        billing_details: {
+          name: user.displayName,
+          email: user.email, // Replace with actual customer name
+        },
+      },
+    });
+    if (result.error) {
+      setError(result.error.message);
+    } else {
+      if (result.paymentIntent.status === "succeeded") {
+        setError("");
+        console.log("Payment successful!");
+        console.log(result);
+        // Optionally, you can handle post-payment actions here
+        //payment hisatory
+        const paymentData = {
+          userEmail: user.email,
+          trainerId,
+          slot,
+          plan,
+          amount: cost * 100,
+          transactionId: result.paymentIntent.id,
+          date: new Date(),
+        };
+
+        await axiosSecure.post("/payments/save", paymentData);
+      }
+    }
+
     console.log("res from amount", res);
   };
 
