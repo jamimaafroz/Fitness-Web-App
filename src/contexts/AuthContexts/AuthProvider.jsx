@@ -54,7 +54,13 @@ const AuthProvider = ({ children }) => {
           );
 
           if (res.data && res.data.length > 0) {
-            setUser(res.data[0]); // Set full user info including role, last login, profile pic
+            const backendUser = res.data[0];
+            // Map backendUser.name to displayName for compatibility
+            setUser({
+              ...backendUser,
+              displayName:
+                backendUser.name || backendUser.displayName || "Anonymous",
+            });
           } else {
             setUser(currentUser); // fallback to Firebase user object
           }

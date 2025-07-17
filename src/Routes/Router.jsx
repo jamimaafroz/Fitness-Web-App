@@ -15,6 +15,8 @@ import MakeAdmin from "../components/PirvateComponents/makeAdmin";
 import BookedTrainer from "../components/PirvateComponents/BookedTrainer";
 import AllClasses from "../Layouts/pages/FeaturedSection/AllClasses";
 import BeATrainer from "../components/PirvateComponents/BeTrainer/BeTrainer";
+import ForumPostSection from "../Layouts/pages/FeaturedSection/ForumPostSection";
+import Error from "../Layouts/pages/Error";
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +48,10 @@ export const router = createBrowserRouter([
         element: <AllClasses />,
       },
       {
+        path: "/community",
+        element: <ForumPostSection></ForumPostSection>,
+      },
+      {
         path: "/booking/:id",
         element: (
           <PrivateRoute>
@@ -71,6 +77,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  { path: "*", element: <Error /> },
   {
     path: "/dashboard",
     element: (

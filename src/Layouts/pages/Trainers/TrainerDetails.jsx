@@ -85,7 +85,13 @@ const TrainerDetails = () => {
               {trainer.days.map((day, index) => (
                 <button
                   key={index}
-                  onClick={() => navigate(`/booking/${trainer._id}`)} // pass trainer id or slot id if you have
+                  onClick={() =>
+                    navigate(
+                      `/booking/${trainer._id}?slot=${encodeURIComponent(
+                        day + " - " + trainer.time
+                      )}`
+                    )
+                  }
                   className="bg-[#C65656] text-white rounded-md py-3 hover:bg-blue-700 transition"
                 >
                   {day} - {trainer.time}

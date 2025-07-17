@@ -30,8 +30,11 @@ const LeftVar = ({ setActiveSection }) => {
   // ONLY normal users/members get these extra links:
   const extraLinks = [];
 
-  if (user?.role === "member") {
+  if (user?.role === "trainer") {
     extraLinks.push("Forum", "Manage Slots", "Add Slot");
+  }
+  if (user?.role === "Admin") {
+    extraLinks.push("Forum");
   }
 
   if (user?.role === "Admin") {

@@ -62,6 +62,7 @@ const TrainerBookingPage = () => {
     console.log("Navigating to payment...");
     const selectedPackage = packages.find((pkg) => pkg.title === selectedPlan);
     const cost = selectedPackage?.price?.replace("$", "") || "0";
+    console.log(slot, selectedPlan, cost);
     navigate(
       `/payment?trainerId=${id}&slot=${slot}&plan=${selectedPlan}&cost=${cost}`
     );

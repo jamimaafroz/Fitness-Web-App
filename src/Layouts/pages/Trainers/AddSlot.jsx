@@ -5,13 +5,13 @@ import useAuth from "../../../Hooks/useAuth";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 
 const daysOptions = [
+  { value: "Sunday", label: "Sunday" },
   { value: "Monday", label: "Monday" },
   { value: "Tuesday", label: "Tuesday" },
   { value: "Wednesday", label: "Wednesday" },
   { value: "Thursday", label: "Thursday" },
   { value: "Friday", label: "Friday" },
   { value: "Saturday", label: "Saturday" },
-  { value: "Sunday", label: "Sunday" },
 ];
 
 const AddSlot = () => {
@@ -26,8 +26,23 @@ const AddSlot = () => {
   const [otherInfo, setOtherInfo] = useState("");
 
   useEffect(() => {
-    // Load admin classes for selection
-    axiosSecure.get("/classes").then((res) => setClasses(res.data));
+    async function fetchClasses() {
+      try {
+        const res = await axiosSecure.get("/classes");
+        // res.data might be { totalCount, classes }
+        if (Array.isArray(res.data)) {
+          setClasses(res.data);
+        } else if (res.data?.classes) {
+          setClasses(res.data.classes);
+        } else {
+          setClasses([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch classes:", error);
+        setClasses([]);
+      }
+    }
+    fetchClasses();
   }, [axiosSecure]);
 
   useEffect(() => {
@@ -103,7 +118,8 @@ const AddSlot = () => {
             isMulti
             options={daysOptions}
             value={selectedDays}
-            isDisabled={true} // read-only
+            onChange={(selected) => setSelectedDays(selected)}
+            isDisabled={false}
           />
         </div>
 
@@ -137,7 +153,11 @@ const AddSlot = () => {
         <div>
           <label className="block font-semibold mb-1">Classes</label>
           <Select
-            options={classes.map((c) => ({ label: c.name, value: c._id }))}
+            options={
+              Array.isArray(classes)
+                ? classes.map((c) => ({ label: c.name, value: c._id }))
+                : []
+            }
             value={selectedClass}
             onChange={setSelectedClass}
             placeholder="Select a class"

@@ -19,7 +19,7 @@ const daysOptions = [
 const skillsOptions = ["Yoga", "Cardio", "Strength", "Zumba", "Pilates"];
 
 const initialFormState = {
-  fullName: "",
+  Name: "",
   age: "",
   experience: "", // New field: Years of experience
   image: "",
@@ -85,11 +85,12 @@ const BeATrainer = () => {
 
     const trainerData = {
       ...formData,
-      name: formData.fullName,
+      name: formData.Name,
       email: user.email,
       status: "pending",
+      role: "member",
     };
-    delete trainerData.fullName;
+    delete trainerData.Name;
 
     mutation.mutate(trainerData);
   };
@@ -107,9 +108,9 @@ const BeATrainer = () => {
         type="text"
         placeholder="Full Name"
         required
-        value={formData.fullName}
+        value={formData.Name}
         className="w-full p-2 border rounded-md"
-        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+        onChange={(e) => setFormData({ ...formData, Name: e.target.value })}
       />
 
       <input

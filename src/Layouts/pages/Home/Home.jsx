@@ -6,6 +6,7 @@ import FeaturedSection from "../FeaturedSection/FeaturedSection";
 import AboutSection from "../AboutSection/AboutSection";
 import TrainerTeam from "../Trainers/TrainerTeam";
 import NewsletterSubscription from "../FeaturedSection/NewsletterSubscription";
+import Testimonials from "../FeaturedSection/Testimonials";
 
 const Home = () => {
   return (
@@ -17,6 +18,7 @@ const Home = () => {
         <AboutSection />
         <TrainerTeam></TrainerTeam>
         <NewsletterSubscription></NewsletterSubscription>
+        <Testimonials />
       </section>
     </>
   );
