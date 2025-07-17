@@ -6,9 +6,9 @@ const Dashboard = () => {
   const [activeSection, setActiveSection] = useState("User Profile");
 
   return (
-    <div className="flex h-screen">
+    <div className="flex min-h-screen">
       {/* Desktop Sidebar */}
-      <div className="hidden md:block w-[250px] bg-gray-100 border-r shadow-md">
+      <div className="hidden md:block w-[250px] bg-gray-100 border-r shadow-md flex-shrink-0">
         <LeftVar setActiveSection={setActiveSection} />
       </div>
 
@@ -18,7 +18,7 @@ const Dashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto md:ml-[250px] mt-8 p-6">
+      <div className="flex-1 p-4 bg-gray-50">
         <SideVar section={activeSection || "User Profile"} />
       </div>
     </div>

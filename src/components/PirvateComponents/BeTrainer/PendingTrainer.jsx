@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { Button } from "../../ui/button";
 import { toast } from "react-toastify";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
+import useAuth from "../../../Hooks/useAuth"; // 👈 Add this if not already
 
 const PendingTrainers = () => {
   const [pendingTrainers, setPendingTrainers] = useState([]);
   const axiosSecure = useAxiosSecure();
+  const { user } = useAuth(); // 👈 We need the current user's role
 
   const fetchPending = async () => {
     try {
@@ -51,6 +53,11 @@ const PendingTrainers = () => {
   };
 
   const updateTrainerStatus = (id, status) => {
+    // 🔐 Frontend protection
+    if (user?.role !== "admin") {
+      return toast.error("❌ You are not authorized to perform this action.");
+    }
+
     confirmAction(
       `Are you sure you want to ${status} this trainer?`,
       async () => {
@@ -131,22 +138,22 @@ const PendingTrainers = () => {
                   </td>
                   <td className="border border-gray-300 px-4 py-2 flex gap-2 justify-center">
                     <Button
-                      variant="success"
                       size="sm"
                       onClick={() =>
                         updateTrainerStatus(trainer._id, "approved")
                       }
                       className="bg-green-500 hover:bg-green-600 text-white"
+                      disabled={user?.role !== "admin"} // 🔒 optional UX
                     >
                       Approve
                     </Button>
                     <Button
-                      variant="destructive"
                       size="sm"
                       onClick={() =>
                         updateTrainerStatus(trainer._id, "rejected")
                       }
                       className="bg-red-500 hover:bg-red-600 text-white"
+                      disabled={user?.role !== "admin"} // 🔒 optional UX
                     >
                       Reject
                     </Button>

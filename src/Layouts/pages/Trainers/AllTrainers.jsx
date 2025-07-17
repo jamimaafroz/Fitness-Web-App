@@ -1,28 +1,60 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router";
-import { FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
+import React from "react";
+import { Link } from "react-router"; // fixed import
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
+import useAuth from "../../../Hooks/useAuth";
+import { toast } from "react-toastify";
+import { FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
 
 const AllTrainers = () => {
-  const [trainers, setTrainers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const axiosSecure = useAxiosSecure();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    axiosSecure
-      .get("/trainers")
-      .then((res) => {
-        const approvedTrainers = res.data.filter(
-          (t) => t.status === "approved"
-        );
-        setTrainers(approvedTrainers);
-      })
-      .catch((err) => {
-        console.error("JWT failed:", err.response?.data || err);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-  if (loading) return <p className="text-center mt-10">Loading trainers...</p>;
+  // useQuery with object syntax (v5)
+  const {
+    data: trainers = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["trainers"],
+    queryFn: async () => {
+      const res = await axiosSecure.get("/trainers");
+      return res.data.filter((t) => t.status === "approved");
+    },
+    staleTime: 1000 * 60 * 5, // cache 5 minutes
+  });
+
+  // useMutation with object syntax (v5)
+  const mutation = useMutation({
+    mutationFn: (trainerId) =>
+      axiosSecure.patch(`/users/${trainerId}/role`, { role: "member" }),
+    onSuccess: () => {
+      toast.success("Trainer role removed successfully");
+      queryClient.invalidateQueries({ queryKey: ["trainers"] });
+    },
+    onError: () => {
+      toast.error("Failed to remove trainer role");
+    },
+  });
+
+  const handleDeleteTrainer = (trainerId) => {
+    if (!window.confirm("Are you sure you want to remove this trainer role?"))
+      return;
+
+    mutation.mutate(trainerId);
+  };
+
+  if (isLoading)
+    return <p className="text-center mt-10">Loading trainers...</p>;
+
+  if (isError)
+    return (
+      <p className="text-center mt-10 text-red-600">
+        Error loading trainers: {error.message}
+      </p>
+    );
 
   return (
     <div className="max-w-7xl mx-auto p-4 mt-24 mb-24 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -44,9 +76,8 @@ const AllTrainers = () => {
             {trainer.otherInfo || ""}
           </p>
 
-          {/* Social Icons (add if you have URLs in your data) */}
+          {/* Social Icons */}
           <div className="flex space-x-4 mb-4">
-            {/* Example icons, conditionally render if URLs exist */}
             {trainer.socials?.facebook && (
               <a
                 href={trainer.socials.facebook}
@@ -92,13 +123,25 @@ const AllTrainers = () => {
             )}
           </div>
 
-          {/* Know More Button */}
-          <Link
-            to={`/trainers/${trainer._id}`}
-            className="mt-auto inline-block bg-[#C65656] text-white py-2 px-4 rounded hover:bg-[#a94545] text-center"
-          >
-            Know More
-          </Link>
+          {/* Buttons */}
+          <div className="mt-auto flex flex-col space-y-2">
+            <Link
+              to={`/trainers/${trainer._id}`}
+              className="inline-block bg-[#C65656] text-white py-2 px-4 rounded hover:bg-[#a94545] text-center"
+            >
+              Know More
+            </Link>
+
+            {user?.role === "admin" && (
+              <button
+                onClick={() => handleDeleteTrainer(trainer._id)}
+                className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700"
+                disabled={mutation.isLoading}
+              >
+                {mutation.isLoading ? "Removing..." : "Remove Trainer Role"}
+              </button>
+            )}
+          </div>
         </div>
       ))}
     </div>

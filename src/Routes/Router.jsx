@@ -3,7 +3,6 @@ import Home from "../Layouts/pages/Home/Home";
 import RootLayout from "../Layouts/RootLayout/RootLayout";
 import Login from "../Layouts/pages/Login";
 import Register from "../Layouts/pages/Register";
-import { HelmetProvider } from "react-helmet-async";
 import Dashboard from "../Layouts/pages/Dashboard/Dashboard";
 import PrivateRoute from "../Route/PrivateRoute";
 import AllTrainers from "../Layouts/pages/Trainers/AllTrainers";
@@ -14,41 +13,51 @@ import PaymentHistory from "../Layouts/pages/Dashboard/Payment/PaymentHistory";
 import PendingTrainers from "../components/PirvateComponents/BeTrainer/PendingTrainer";
 import MakeAdmin from "../components/PirvateComponents/makeAdmin";
 import BookedTrainer from "../components/PirvateComponents/BookedTrainer";
+import AllClasses from "../Layouts/pages/FeaturedSection/AllClasses";
+import BeATrainer from "../components/PirvateComponents/BeTrainer/BeTrainer";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: (
-      <HelmetProvider>
-        <RootLayout />
-      </HelmetProvider>
-    ),
+    element: <RootLayout />,
     children: [
       {
         index: true,
-        Component: Home,
+        element: <Home />,
       },
       {
         path: "/login",
-        Component: Login,
+        element: <Login />,
       },
       {
         path: "/register",
-        Component: Register,
+        element: <Register />,
       },
       {
         path: "/trainers",
-        Component: AllTrainers,
+        element: <AllTrainers />,
       },
       {
-        path: `/trainers/:id`,
-        Component: TrainerDetails,
+        path: "/trainers/:id",
+        element: <TrainerDetails />,
       },
       {
-        path: `/booking/:id`,
+        path: "/classes",
+        element: <AllClasses />,
+      },
+      {
+        path: "/booking/:id",
         element: (
           <PrivateRoute>
-            <TrainerBookingPage></TrainerBookingPage>
+            <TrainerBookingPage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/become-trainer",
+        element: (
+          <PrivateRoute>
+            <BeATrainer />
           </PrivateRoute>
         ),
       },
@@ -82,9 +91,8 @@ export const router = createBrowserRouter([
         path: "makeadmin",
         element: <MakeAdmin />,
       },
-
       {
-        path: "booked-trainer/:id", // no leading slash here in nested routes
+        path: "booked-trainer/:id",
         element: <BookedTrainer />,
       },
     ],

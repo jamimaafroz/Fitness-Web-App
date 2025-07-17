@@ -1,91 +1,72 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import useAuth from "../../Hooks/useAuth";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-const StarRating = ({ rating, setRating }) => {
-  return (
-    <div className="flex space-x-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          onClick={() => setRating(star)}
-          className={`text-3xl cursor-pointer ${
-            star <= rating ? "text-yellow-400" : "text-gray-300"
-          }`}
-          aria-label={`${star} Star`}
-        >
-          ★
-        </button>
-      ))}
-    </div>
-  );
-};
+const StarRating = ({ rating, setRating }) => (
+  <div className="flex space-x-1">
+    {[1, 2, 3, 4, 5].map((star) => (
+      <button
+        key={star}
+        type="button"
+        onClick={() => setRating(star)}
+        className={`text-3xl cursor-pointer ${
+          star <= rating ? "text-yellow-400" : "text-gray-300"
+        }`}
+        aria-label={`${star} Star`}
+      >
+        ★
+      </button>
+    ))}
+  </div>
+);
 
 const BookedTrainer = ({ trainerId }) => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
+  const queryClient = useQueryClient();
 
-  const [trainer, setTrainer] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [loadingTrainer, setLoadingTrainer] = useState(true);
-  const [loadingReviews, setLoadingReviews] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Review modal states
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [starRating, setStarRating] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
 
-  // Fetch trainer info whenever trainerId changes
-  useEffect(() => {
-    if (!trainerId) {
-      setError("No trainer selected");
-      setTrainer(null);
-      setLoadingTrainer(false);
-      return;
-    }
+  // Fetch trainer data
+  const {
+    data: trainer,
+    isLoading: loadingTrainer,
+    error: trainerError,
+  } = useQuery({
+    queryKey: ["trainer", trainerId],
+    queryFn: () =>
+      axiosSecure.get(`/trainers/${trainerId}`).then((res) => res.data),
+    enabled: !!trainerId,
+  });
+  // Fetch reviews data
+  const {
+    data: reviews = [],
+    isLoading: loadingReviews,
+    error: reviewsError,
+  } = useQuery({
+    queryKey: ["reviews", trainerId],
+    queryFn: () =>
+      axiosSecure
+        .get(`/reviews`, { params: { trainerId } })
+        .then((res) => res.data),
+    enabled: !!trainerId,
+  });
 
-    setLoadingTrainer(true);
-    setError(null);
-
-    fetch(`http://localhost:3000/trainers/${trainerId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Trainer not found");
-        return res.json();
-      })
-      .then((data) => {
-        setTrainer(data);
-        setLoadingTrainer(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoadingTrainer(false);
-      });
-  }, [trainerId]);
-
-  // Fetch reviews for this trainer
-  const fetchReviews = () => {
-    if (!trainerId) {
-      setReviews([]);
-      setLoadingReviews(false);
-      return;
-    }
-
-    setLoadingReviews(true);
-    fetch(`http://localhost:3000/reviews?trainerId=${trainerId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setReviews(data);
-        setLoadingReviews(false);
-      })
-      .catch(() => setLoadingReviews(false));
-  };
-
-  useEffect(() => {
-    fetchReviews();
-  }, [trainerId]);
+  // Mutation to post a review
+  const mutation = useMutation({
+    mutationFn: (newReview) => axiosSecure.post("/reviews", newReview),
+    onSuccess: () => {
+      setIsReviewOpen(false);
+      setReviewText("");
+      setStarRating(0);
+      queryClient.invalidateQueries({ queryKey: ["reviews", trainerId] });
+      alert("Review submitted! Thanks for your feedback.");
+    },
+    onError: () => alert("Failed to submit review, try again."),
+  });
 
   const openReviewModal = () => {
     if (!user?.email) {
@@ -101,41 +82,28 @@ const BookedTrainer = ({ trainerId }) => {
     setStarRating(0);
   };
 
-  const handleReviewSubmit = async (e) => {
+  const handleReviewSubmit = (e) => {
     e.preventDefault();
-
     if (starRating === 0) {
       alert("Please provide a star rating");
       return;
     }
 
-    setSubmitting(true);
-
-    try {
-      await axiosSecure.post("/reviews", {
-        trainerId,
-        rating: starRating,
-        comment: reviewText,
-        userEmail: user.email,
-      });
-      alert("Review submitted! Thanks for your feedback.");
-      closeReviewModal();
-      fetchReviews(); // Refresh reviews after submission
-    } catch (err) {
-      alert("Failed to submit review, try again.");
-      console.error(err);
-    } finally {
-      setSubmitting(false);
-    }
+    mutation.mutate({
+      trainerId,
+      rating: starRating,
+      comment: reviewText,
+      userEmail: user.email,
+    });
   };
 
   if (loadingTrainer)
     return <p className="text-center mt-10">Loading trainer info...</p>;
 
-  if (error)
+  if (trainerError)
     return (
       <p className="text-center mt-10 text-red-600 font-semibold">
-        Error: {error}
+        Error: {trainerError.message}
       </p>
     );
 
@@ -203,6 +171,8 @@ const BookedTrainer = ({ trainerId }) => {
         <h3 className="text-xl font-semibold text-[#C65656] mb-3">Reviews</h3>
         {loadingReviews ? (
           <p>Loading reviews...</p>
+        ) : reviewsError ? (
+          <p className="text-red-600">Failed to load reviews.</p>
         ) : reviews.length === 0 ? (
           <p>No reviews yet. Be the first to leave one!</p>
         ) : (
@@ -246,7 +216,11 @@ const BookedTrainer = ({ trainerId }) => {
 
       {/* Review Modal */}
       {isReviewOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4"
+        >
           <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
             <button
               onClick={closeReviewModal}
@@ -273,10 +247,10 @@ const BookedTrainer = ({ trainerId }) => {
               </div>
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={mutation.isLoading}
                 className="w-full py-2 bg-[#C65656] text-white rounded-md font-semibold hover:bg-[#a84242] transition disabled:opacity-60"
               >
-                {submitting ? "Submitting..." : "Submit Review"}
+                {mutation.isLoading ? "Submitting..." : "Submit Review"}
               </button>
             </form>
           </div>

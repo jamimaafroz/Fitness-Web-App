@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import Select from "react-select";
-import useAuth from "../../../Hooks/useAuth";
-import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import { toast } from "react-toastify";
 import { Button } from "../../ui/button";
+import useAuth from "../../../Hooks/useAuth";
+import useAxiosSecure from "../../../Hooks/useAxiosSecure";
+import { useMutation } from "@tanstack/react-query";
 
 const daysOptions = [
   { value: "Sunday", label: "Sunday" },
@@ -15,9 +16,12 @@ const daysOptions = [
   { value: "Saturday", label: "Saturday" },
 ];
 
+const skillsOptions = ["Yoga", "Cardio", "Strength", "Zumba", "Pilates"];
+
 const initialFormState = {
   fullName: "",
   age: "",
+  experience: "", // New field: Years of experience
   image: "",
   skills: [],
   days: [],
@@ -28,7 +32,26 @@ const initialFormState = {
 const BeATrainer = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
+
   const [formData, setFormData] = useState(initialFormState);
+
+  // TanStack mutation for form submission
+  const mutation = useMutation({
+    mutationFn: async (trainerData) => {
+      const res = await axiosSecure.post("/trainers/apply", trainerData);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success("Trainer application submitted successfully!", data);
+      setFormData(initialFormState);
+    },
+    onError: (error) => {
+      const message =
+        error.response?.data?.message || "Failed to submit application.";
+      toast.error(message);
+      console.error("Error submitting trainer application:", error);
+    },
+  });
 
   const handleCheckboxChange = (e) => {
     const { value, checked } = e.target;
@@ -47,8 +70,18 @@ const BeATrainer = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (
+      !formData.experience ||
+      isNaN(formData.experience) ||
+      formData.experience < 0
+    ) {
+      return toast.error(
+        "Please enter a valid number for years of experience."
+      );
+    }
 
     const trainerData = {
       ...formData,
@@ -58,34 +91,13 @@ const BeATrainer = () => {
     };
     delete trainerData.fullName;
 
-    try {
-      const res = await axiosSecure.post("/trainers/apply", trainerData);
-
-      if (res.status === 201 && res.data.id) {
-        toast.success("Trainer application submitted successfully!");
-        setFormData(initialFormState);
-      } else if (res.status === 409) {
-        toast.error(
-          res.data.message || "You already applied or are a trainer."
-        );
-      } else {
-        toast.error("Something went wrong. Please try again.");
-      }
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to submit application."
-      );
-      console.error(
-        "Error creating trainer:",
-        error.response?.data || error.message
-      );
-    }
+    mutation.mutate(trainerData);
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-xl mx-auto p-6 bg-white rounded-xl shadow-md space-y-4"
+      className="max-w-xl mt-24 mx-auto p-6 bg-white rounded-xl shadow-md space-y-4"
     >
       <h2 className="text-2xl font-bold text-[#C65656] text-center">
         Apply to Become a Trainer 💪
@@ -111,9 +123,23 @@ const BeATrainer = () => {
         type="number"
         placeholder="Age"
         required
+        min={1}
         value={formData.age}
         className="w-full p-2 border rounded-md"
         onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+      />
+
+      {/* New: Years of Experience */}
+      <input
+        type="number"
+        placeholder="Years of Experience"
+        required
+        min={0}
+        value={formData.experience}
+        className="w-full p-2 border rounded-md"
+        onChange={(e) =>
+          setFormData({ ...formData, experience: e.target.value })
+        }
       />
 
       <input
@@ -128,7 +154,7 @@ const BeATrainer = () => {
       <div>
         <p className="font-medium">Skills (select multiple):</p>
         <div className="flex flex-wrap gap-4 mt-2">
-          {["Yoga", "Cardio", "Strength", "Zumba", "Pilates"].map((skill) => (
+          {skillsOptions.map((skill) => (
             <label key={skill} className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -177,8 +203,9 @@ const BeATrainer = () => {
         variant="default"
         size="lg"
         className="w-full border-[0.5px] border-[rgb(228,103,103)] text-[#C65656] shadow-2xl hover:cursor-pointer"
+        disabled={mutation.isLoading}
       >
-        Apply Now
+        {mutation.isLoading ? "Submitting..." : "Apply Now"}
       </Button>
     </form>
   );

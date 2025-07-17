@@ -28,7 +28,7 @@ const Register = () => {
   const saveUserAndGetToken = async (email, photoURL) => {
     const userinfo = {
       email,
-      role: "user",
+      role: "member",
       created_at: new Date().toISOString(),
       last_log_in: new Date().toISOString(),
       photoURL,

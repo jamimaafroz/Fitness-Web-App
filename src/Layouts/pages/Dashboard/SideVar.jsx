@@ -13,6 +13,8 @@ import AddSlot from "../Trainers/AddSlot";
 import AddForum from "../Trainers/AddForum";
 import BookedTrainer from "../../../components/PirvateComponents/BookedTrainer";
 import NewsletterSubscribers from "../FeaturedSection/NewsletterSubscribers";
+import Balance from "./Payment/Balance";
+import AddClass from "../../../components/PirvateComponents/AddClass";
 
 const SideVar = ({ section }) => {
   const { user } = useAuth();
@@ -48,7 +50,7 @@ const SideVar = ({ section }) => {
   // Access control for Activity Log (only members)
   if (
     section === "Activity Log" &&
-    (user?.role === "trainer" || user?.role === "admin")
+    (user?.role === "trainer" || user?.role === "Admin")
   ) {
     return (
       <div className="text-center text-red-600 font-semibold p-6">
@@ -58,7 +60,23 @@ const SideVar = ({ section }) => {
   }
 
   // Make Admin exclusive for admins
-  if (section === "Make Admin" && user?.role !== "admin") {
+  if (section === "Make Admin" && user?.role !== "Admin") {
+    return (
+      <div className="text-center text-red-600 font-semibold p-6">
+        ❌ You do not have permission to access Make Admin.
+      </div>
+    );
+  }
+  //Add class: Only admin can access
+  if (section === "Add Class" && user?.role !== "Admin") {
+    return (
+      <div className="text-center text-red-600 font-semibold p-6">
+        ❌ You do not have permission to access Add Class.
+      </div>
+    );
+  }
+  // Balance & Payment History: Only admin can access
+  if (section === "Total Balance" && user?.role !== "Admin") {
     return (
       <div className="text-center text-red-600 font-semibold p-6">
         ❌ You do not have permission to access Make Admin.
@@ -66,20 +84,8 @@ const SideVar = ({ section }) => {
     );
   }
 
-  // Manage Slots & Add Slot: Only trainers and admins can access
-  if (
-    (section === "Manage Slots" || section === "Add Slot") &&
-    !["trainer", "admin"].includes(user?.role)
-  ) {
-    return (
-      <div className="text-center text-red-600 font-semibold p-6">
-        ❌ Only Trainers and Admins can access {section}.
-      </div>
-    );
-  }
-
   // Newsletter Subscribers - Admin only
-  if (section === "Newsletter Subscribers" && user?.role !== "admin") {
+  if (section === "Newsletter Subscribers" && user?.role !== "Admin") {
     return (
       <div className="text-center text-red-600 font-semibold p-6">
         ❌ You do not have permission to access Newsletter Subscribers.
@@ -108,16 +114,22 @@ const SideVar = ({ section }) => {
     "Manage Slots": <ManageSlots />,
     "Add Slot": <AddSlot />,
     "Newsletter Subscribers": <NewsletterSubscribers />, // NEW COMPONENT
+    "Total Balance": <Balance />,
+    "Add Class": <AddClass></AddClass>, // NEW COMPONENT
   };
 
   return (
-    <div>
-      <h1 className="text-4xl font-semibold mb-4 text-[#C65656] text-center">
-        {section}
-      </h1>
-      {sectionComponents[section] || (
-        <p>Welcome to the {user?.displayName || "user"}'s dashboard!</p>
-      )}
+    <div className="w-full min-h-[calc(100vh-100px)] px-4 sm:px-8 py-6">
+      <div className="max-w-6xl mx-auto p-6">
+        <h1 className="text-3xl md:text-4xl font-semibold mb-6 text-center text-[#C65656]">
+          {section}
+        </h1>
+        {sectionComponents[section] || (
+          <p className="text-center text-gray-600">
+            Welcome to {user?.displayName || "User"}'s dashboard!
+          </p>
+        )}
+      </div>
     </div>
   );
 };

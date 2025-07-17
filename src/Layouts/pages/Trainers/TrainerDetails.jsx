@@ -1,93 +1,99 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router";
-import axios from "axios";
+import React from "react";
+import { useParams, useNavigate } from "react-router";
+import { useQuery } from "@tanstack/react-query";
+import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 
 const TrainerDetails = () => {
   const { id } = useParams();
+  const axiosSecure = useAxiosSecure();
   const navigate = useNavigate();
-  const [trainer, setTrainer] = useState(null);
 
-  useEffect(() => {
-    axios
-      .get(`http://localhost:3000/trainers/${id}`)
-      .then((res) => setTrainer(res.data))
-      .catch((err) => console.error("Failed to fetch trainer:", err));
-  }, [id]);
+  const {
+    data: trainer,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["trainer", id],
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/trainers/${id}`);
+      return res.data;
+    },
+  });
 
-  // Handle slot click: redirect to booking page with state
-  const handleSlotClick = (slot) => {
-    navigate(`/booking/${trainer._id}?slot=${slot}`, {
-      state: {
-        trainerName: trainer.name,
-        selectedSlot: slot,
-        classes: trainer.classes || "Not specified",
-      },
-    });
-  };
+  if (isLoading)
+    return (
+      <div className="text-center mt-10 text-xl font-semibold">Loading...</div>
+    );
 
-  if (!trainer) return <p className="text-center mt-10">Loading...</p>;
+  if (isError)
+    return (
+      <div className="text-center mt-10 text-red-600 font-semibold">
+        Error: {error.message}
+      </div>
+    );
 
   return (
-    <div className="max-w-7xl mt-24 mx-auto px-4 py-8 space-y-10">
-      {/* Be A Trainer CTA */}
-      <div className="text-center">
-        <h2 className="text-3xl font-bold mb-4 text-[#C65656]">
-          Want to Inspire Others?
-        </h2>
-        <p className="mb-4">
-          Join our team of certified trainers and make a difference.
+    <div className="max-w-6xl mt-24 mx-auto p-6 space-y-10">
+      {/* Be A Trainer CTA Section */}
+      <section className="p-6 text-center">
+        <h2 className="text-3xl font-bold mb-4">Want to share your skills?</h2>
+        <p className="mb-6">
+          Join our community and become a certified trainer today!
         </p>
-        <Link to="/dashboard">
-          <button className="bg-[#C65656] text-white px-4 py-2 rounded hover:bg-[#9e3d3d] transition">
-            Become a Trainer
-          </button>
-        </Link>
-      </div>
+        <button
+          onClick={() => navigate("/become-trainer")}
+          className="bg-white text-[#C65656] font-semibold px-6 py-3 rounded-md hover:bg-gray-100 transition"
+        >
+          Become a Trainer
+        </button>
+      </section>
 
-      {/* Trainer Information */}
-      <div className="grid md:grid-cols-2 gap-10 items-start">
-        <div className="space-y-4">
+      {/* Trainer Info & Available Slots */}
+      <div className="flex flex-col md:flex-row gap-8 bg-white p-6 rounded-xl shadow-md">
+        {/* Trainer Info Section */}
+        <div className="md:w-1/2">
           <img
-            src={trainer.image || "/default-profile.png"}
+            src={
+              trainer.image ||
+              "https://via.placeholder.com/400x400?text=No+Image"
+            }
             alt={trainer.name}
-            className="w-full h-96 object-cover rounded-lg shadow"
+            className="w-full h-80 object-cover rounded-lg mb-6"
           />
+          <h1 className="text-3xl font-bold mb-2">{trainer.name}</h1>
+          <p className="text-gray-700 mb-4">{trainer.details}</p>
+          <p className="text-gray-600 font-semibold mb-2">Skills:</p>
+          <ul className="list-disc list-inside mb-4">
+            {trainer.skills?.map((skill, i) => (
+              <li key={i} className="text-gray-700">
+                {skill}
+              </li>
+            ))}
+          </ul>
+          <p className="text-gray-600 font-semibold">Experience:</p>
+          <p className="mb-4">{trainer.experience}</p>
+          <p className="text-gray-600 font-semibold">Other Info:</p>
+          <p>{trainer.otherInfo}</p>
         </div>
-        <div className="space-y-4">
-          <h2 className="text-3xl font-bold text-[#C65656]">{trainer.name}</h2>
-          <p>
-            <strong>Experience:</strong> {trainer.experience || "N/A"} years
-          </p>
-          <p>
-            <strong>Expertise:</strong> {trainer.skills?.join(", ") || "N/A"}
-          </p>
-          <p>
-            <strong>Email:</strong> {trainer.email || "N/A"}
-          </p>
-          <p>
-            <strong>About:</strong> {trainer.otherInfo || "No additional info."}
-          </p>
-        </div>
-      </div>
 
-      {/* Available Slots */}
-      <div>
-        <h3 className="text-2xl font-semibold mb-4 text-[#C65656]">
-          Available Slots 🕒
-        </h3>
-        <div className="flex flex-wrap gap-3">
-          {trainer.days?.length > 0 ? (
-            trainer.days.map((slot, i) => (
-              <button
-                key={i}
-                onClick={() => handleSlotClick(slot)}
-                className="px-4 py-2 border rounded text-[#C65656] border-[#C65656] hover:bg-[#C65656] hover:text-white transition duration-200"
-              >
-                {slot} - {trainer.time || "Time not set"}
-              </button>
-            ))
+        {/* Available Slots Section */}
+        <div className="md:w-1/2">
+          <h2 className="text-2xl font-bold mb-6">Available Slots</h2>
+          {trainer.days && trainer.days.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4">
+              {trainer.days.map((day, index) => (
+                <button
+                  key={index}
+                  onClick={() => navigate(`/booking/${trainer._id}`)} // pass trainer id or slot id if you have
+                  className="bg-[#C65656] text-white rounded-md py-3 hover:bg-blue-700 transition"
+                >
+                  {day} - {trainer.time}
+                </button>
+              ))}
+            </div>
           ) : (
-            <p className="text-gray-500">No available slots right now.</p>
+            <p className="text-gray-500">No available slots at the moment.</p>
           )}
         </div>
       </div>

@@ -1,84 +1,61 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import useAuth from "../../../Hooks/useAuth";
-import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 
 const Profile = () => {
   const { user } = useAuth();
-  const axiosSecure = useAxiosSecure();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user?.email) return;
-
-    const fetchProfile = async () => {
-      try {
-        const res = await axiosSecure.get(`/users?email=${user.email}`);
-        console.log("Fetched profile data:", res.data);
-        const userData = Array.isArray(res.data) ? res.data[0] : res.data;
-        setProfile(userData);
-      } catch (error) {
-        console.error("Failed to fetch profile:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [user, axiosSecure]);
-
-  if (loading) return <p>Loading your profile...</p>;
-  if (!profile) return <p>User data not found.</p>;
-
-  // Format last login time if available
-  const lastLogin = profile.lastLoggedIn
-    ? new Date(profile.lastLoggedIn).toLocaleString()
+  // Safely extract values or fallback
+  const fullName = user?.name || user?.displayName || "N/A";
+  const profilePicUrl = user?.image || user?.photoURL || null;
+  const email = user?.email || "N/A";
+  const lastLogin = user?.lastLoggedIn
+    ? new Date(user.lastLoggedIn).toUTCString()
     : "Never logged in";
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white shadow rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-center text-[#C65656]">
-        Your Profile
-      </h2>
-      <div className="flex flex-col items-center space-y-4">
-        {profile.image ? (
-          <img
-            src={profile.image}
-            alt={profile.name || "User Image"}
-            className="w-32 h-32 rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
-            No Image
-          </div>
-        )}
+      <h1 className="text-3xl font-bold mb-6 text-center text-[#C65656]">
+        User Profile
+      </h1>
 
-        <p>
-          <strong>Name:</strong> {profile.name || user.displayName || "N/A"}
-        </p>
-        <p>
-          <strong>Email:</strong> {profile.email || user.email}
-        </p>
-        <p>
-          <strong>Role:</strong> {profile.role || "member"}
-        </p>
-        <p>
-          <strong>Last Logged In:</strong> {lastLogin}
-        </p>
+      <div className="space-y-6 text-left">
+        <div>
+          <h2 className="font-semibold text-lg">Full Name</h2>
+          <p>{fullName}</p>
+        </div>
 
-        {profile.profilePicLink && (
-          <p>
-            <strong>Profile Pic URL:</strong>{" "}
+        <div>
+          <h2 className="font-semibold text-lg">Profile Picture URL</h2>
+          {profilePicUrl ? (
             <a
-              href={profile.profilePicLink}
+              href={profilePicUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 underline"
+              className="text-blue-600 underline break-words"
             >
-              {profile.profilePicLink}
+              {profilePicUrl}
             </a>
-          </p>
-        )}
+          ) : (
+            <p>No profile picture URL</p>
+          )}
+        </div>
+
+        <div>
+          <h2 className="font-semibold text-lg">Email</h2>
+          <p>{email}</p>
+        </div>
+
+        <div>
+          <h2 className="font-semibold text-lg">Last Login</h2>
+          <p>{lastLogin}</p>
+        </div>
+
+        <button
+          onClick={() => alert("Update Profile clicked!")}
+          className="w-full mt-6 py-2 bg-[#C65656] text-white rounded hover:bg-[#a94545]"
+        >
+          Update Profile
+        </button>
       </div>
     </div>
   );
