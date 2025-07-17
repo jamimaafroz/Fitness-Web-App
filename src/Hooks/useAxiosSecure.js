@@ -8,7 +8,9 @@ const useAxiosSecure = () => {
   // Create axios instance only once with env baseURL
   const axiosSecure = useMemo(() => {
     return axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000",
+      baseURL:
+        import.meta.env.VITE_API_BASE_URL ||
+        "https://fitness-app-server-six.vercel.app",
       // Optionally add timeout, headers etc here if needed
     });
   }, []);

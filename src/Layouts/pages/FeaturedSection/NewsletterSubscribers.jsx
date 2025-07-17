@@ -8,7 +8,7 @@ const NewsletterSubscribers = () => {
   useEffect(() => {
     const token = localStorage.getItem("fit-access-token"); // or wherever you store your JWT
 
-    fetch("http://localhost:3000/newsletter-subscribers", {
+    fetch("https://fitness-app-server-six.vercel.app/newsletter-subscribers", {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`, // this is crucial

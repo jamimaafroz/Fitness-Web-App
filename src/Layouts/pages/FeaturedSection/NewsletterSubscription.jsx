@@ -17,11 +17,14 @@ const NewsletterSubscription = () => {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3000/newsletter-subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
-      });
+      const res = await fetch(
+        "https://fitness-app-server-six.vercel.app/newsletter-subscribe",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email }),
+        }
+      );
 
       if (res.ok) {
         setMessage({ type: "success", text: "Thanks for subscribing!" });
