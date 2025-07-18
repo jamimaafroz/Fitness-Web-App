@@ -16,62 +16,78 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+
   const { signIn, signInWithGoogle } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const from = location.state?.from || "/";
   const axiosInstance = useAxios();
 
-  // Email/Password Login Handler
+  // Email & Password Login
   const onSubmit = async (data) => {
     try {
       const result = await signIn(data.email, data.password);
       const user = result.user;
 
-      // 🔥 Fetch full user info including role
+      // Get user with role
       const userRes = await axiosInstance.get(`/users?email=${user.email}`);
       const fullUser = userRes.data[0];
 
-      // ✅ Pass full user with role to the /jwt endpoint
+      if (!fullUser) {
+        throw new Error("User not found in database.");
+      }
+
+      // JWT Token Get
       const res = await axiosInstance.post("/jwt", fullUser);
       localStorage.setItem("fit-access-token", res.data.token);
 
-      toast.success("Logged in successfully!");
+      toast.success("Login successful!");
       navigate(from);
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Login failed. Please try again.");
+      console.error("Login error:", error.message);
+      toast.error("Invalid email or password.");
     }
   };
 
-  // Google Sign-In Handler
+  // Google Login
   const handleGoogleSignIn = async () => {
     try {
       const result = await signInWithGoogle();
       const user = result.user;
 
-      const userinfo = {
+      const userInfo = {
+        name: user.displayName || "Unknown",
         email: user.email,
-        role: "member", // or set default role here
+        role: "member",
+        photo: user.photoURL || "",
         created_at: new Date().toISOString(),
         last_log_in: new Date().toISOString(),
       };
 
-      await axiosInstance.post("/users", userinfo);
-
-      // 🔥 Fetch full user info from DB
+      // Check if user exists in DB
       const userRes = await axiosInstance.get(`/users?email=${user.email}`);
-      const fullUser = userRes.data[0];
+      const existingUser = userRes.data[0];
 
-      // ✅ Send full user to /jwt
+      // If not found, add new user
+      if (!existingUser) {
+        await axiosInstance.post("/users", userInfo);
+      }
+
+      // Fetch again to get role + ID
+      const updatedUserRes = await axiosInstance.get(
+        `/users?email=${user.email}`
+      );
+      const fullUser = updatedUserRes.data[0];
+
+      // Generate JWT
       const jwtRes = await axiosInstance.post("/jwt", fullUser);
       localStorage.setItem("fit-access-token", jwtRes.data.token);
 
-      toast.success("Signed in successfully!");
+      toast.success("Logged in with Google!");
       navigate("/");
-    } catch (error) {
-      console.error("Google Sign-In Error:", error);
-      toast.error("Google sign-in failed");
+    } catch (err) {
+      console.error("Google Sign-In Error:", err.message);
+      toast.error("Google Sign-In failed");
     }
   };
 
@@ -81,8 +97,7 @@ const Login = () => {
       <div
         className="min-h-screen flex items-center justify-center bg-cover bg-center relative"
         style={{
-          backgroundImage:
-            "url('https://i.postimg.cc/DZgpbNZh/kike-vega-F2qh3yjz6-Jk-unsplash.jpg')",
+          backgroundImage: `url('https://i.postimg.cc/DZgpbNZh/kike-vega-F2qh3yjz6-Jk-unsplash.jpg')`,
         }}
       >
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-0" />

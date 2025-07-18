@@ -28,13 +28,14 @@ const Register = () => {
   const saveUserAndGetToken = async (email, photoURL) => {
     const userinfo = {
       email,
-      role: "member",
+      role: "Admin",
       created_at: new Date().toISOString(),
       last_log_in: new Date().toISOString(),
       photoURL,
     };
-    // Use axiosSecure instance here
+    console.log("Saving user info:", userinfo);
     await axiosSecure.post("/users", userinfo);
+
     const { data } = await axiosSecure.post("/jwt", { email });
     localStorage.setItem("fit-access-token", data.token);
   };
