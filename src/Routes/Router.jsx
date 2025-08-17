@@ -18,6 +18,7 @@ import BeATrainer from "../components/PirvateComponents/BeTrainer/BeTrainer";
 import ForumPostSection from "../Layouts/pages/FeaturedSection/ForumPostSection";
 import Error from "../Layouts/pages/Error";
 import UpdateProfile from "../components/PirvateComponents/Profile/UpdateProfile";
+import DetailsSection from "../Layouts/pages/AboutSection/DetailsSection";
 
 export const router = createBrowserRouter([
   {
@@ -55,6 +56,10 @@ export const router = createBrowserRouter([
       {
         path: "/update-profile",
         element: <UpdateProfile></UpdateProfile>,
+      },
+      {
+        path: "/details",
+        element: <DetailsSection />,
       },
       {
         path: "/booking/:id",

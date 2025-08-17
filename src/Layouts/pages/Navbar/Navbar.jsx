@@ -34,7 +34,7 @@ const Navbar = () => {
   if (user) navLinks.push({ path: "/dashboard", label: "Dashboard" });
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-sm bg-transparent shadow-md">
+    <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-sm bg-[rgb(255,255,255,0.70)] shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
         {/* Logo */}
         <Link

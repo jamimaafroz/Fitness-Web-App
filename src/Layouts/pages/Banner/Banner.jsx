@@ -25,7 +25,7 @@ const Banner = () => {
   ];
 
   return (
-    <section className="relative w-full">
+    <section className="relative w-full pt-8 md:pt-16">
       <Carousel
         autoPlay
         infiniteLoop
