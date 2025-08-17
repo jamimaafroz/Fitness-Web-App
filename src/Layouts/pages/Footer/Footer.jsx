@@ -17,22 +17,22 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-gray-50 py-16 mt-24 sm:py-24 border-t border-gray-200">
+    <footer className="bg-[#C65656] py-16  sm:py-24">
       <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-10 md:gap-0">
         {/* Logo */}
         <div className="flex items-center justify-center md:justify-start mb-4 md:mb-0">
-          <Logo />
+          <Logo variant="footer" />
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex flex-col sm:flex-row items-center gap-6 text-gray-700 font-medium text-base sm:text-lg">
+        <nav className="flex flex-col sm:flex-row items-center gap-6 text-gray-100 font-medium text-base sm:text-lg">
           {navLinks.map(({ name, to }) => (
             <NavLink
               key={name}
               to={to}
               className={({ isActive }) =>
-                `transition-colors duration-300 hover:text-[#C65656] ${
-                  isActive ? "text-[#C65656]" : ""
+                `transition-colors duration-300 hover:text-white ${
+                  isActive ? "text-white" : ""
                 }`
               }
               aria-label={`Go to ${name}`}
@@ -43,13 +43,13 @@ const Footer = () => {
         </nav>
 
         {/* Social Icons */}
-        <div className="flex justify-center md:justify-end space-x-5 text-gray-700 text-xl">
+        <div className="flex justify-center md:justify-end space-x-5 text-gray-100 text-xl">
           <a
             href="https://facebook.com/yourpage"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Facebook"
-            className="hover:text-[#C65656] transition-colors duration-300"
+            className="hover:text-white transition-colors duration-300"
           >
             <FaFacebookF />
           </a>
@@ -58,7 +58,7 @@ const Footer = () => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Twitter"
-            className="hover:text-[#C65656] transition-colors duration-300"
+            className="hover:text-white transition-colors duration-300"
           >
             <FaTwitter />
           </a>
@@ -67,7 +67,7 @@ const Footer = () => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Instagram"
-            className="hover:text-[#C65656] transition-colors duration-300"
+            className="hover:text-white transition-colors duration-300"
           >
             <FaInstagram />
           </a>
@@ -76,7 +76,7 @@ const Footer = () => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="LinkedIn"
-            className="hover:text-[#C65656] transition-colors duration-300"
+            className="hover:text-white transition-colors duration-300"
           >
             <FaLinkedinIn />
           </a>
@@ -84,7 +84,7 @@ const Footer = () => {
       </div>
 
       {/* Copyright */}
-      <div className="mt-8 text-center text-sm text-gray-500">
+      <div className="mt-8 text-center text-sm text-gray-200">
         © {new Date().getFullYear()} YourFitnessApp. All rights reserved.
       </div>
     </footer>

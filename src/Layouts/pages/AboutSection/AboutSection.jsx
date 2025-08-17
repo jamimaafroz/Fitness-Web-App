@@ -5,39 +5,6 @@ import { motion } from "framer-motion";
 const AboutSection = () => {
   const navigate = useNavigate();
 
-  const features = [
-    {
-      title: "AI-Powered Workouts",
-      desc: "Customized plans for your goals.",
-      icon: "💪",
-    },
-    {
-      title: "Expert Trainers",
-      desc: "Certified trainers guiding every step.",
-      icon: "🏋️‍♂️",
-    },
-    {
-      title: "Real-Time Tracking",
-      desc: "Track your progress with charts.",
-      icon: "📊",
-    },
-    {
-      title: "Community Support",
-      desc: "Join a strong, motivating community.",
-      icon: "🤝",
-    },
-    {
-      title: "Meal Plans",
-      desc: "Nutrition guidance for your body type.",
-      icon: "🥗",
-    },
-    {
-      title: "Challenges & Rewards",
-      desc: "Stay engaged and motivated.",
-      icon: "🏆",
-    },
-  ];
-
   return (
     <section className="bg-white py-20 px-4">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -84,32 +51,6 @@ const AboutSection = () => {
           />
         </motion.div>
       </div>
-
-      {/* Features Grid */}
-      <motion.div
-        className="max-w-7xl mx-auto mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-      >
-        {features.map((feature, idx) => (
-          <motion.div
-            key={idx}
-            className="bg-gray-50 rounded-2xl shadow-md p-6 text-center hover:shadow-lg transition-all duration-300"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            viewport={{ once: true }}
-          >
-            <div className="text-4xl mb-4">{feature.icon}</div>
-            <h3 className="text-xl font-semibold text-[#C65656] mb-2">
-              {feature.title}
-            </h3>
-            <p className="text-gray-600 text-sm">{feature.desc}</p>
-          </motion.div>
-        ))}
-      </motion.div>
     </section>
   );
 };

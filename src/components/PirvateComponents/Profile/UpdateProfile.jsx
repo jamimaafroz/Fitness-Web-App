@@ -53,7 +53,7 @@ const UpdateProfile = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gray-50 space-y-16">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gray-50 mt-16 sm:mt-8">
       <div className="w-full max-w-md sm:max-w-lg md:max-w-xl bg-white border border-gray-200 rounded-2xl shadow-lg p-6 sm:p-10">
         <h2 className="text-2xl sm:text-3xl font-semibold text-center text-gray-800 mb-8">
           Update Your Profile

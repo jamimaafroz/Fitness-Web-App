@@ -69,8 +69,9 @@ const Navbar = () => {
             <>
               <img
                 src={
-                  user.photoURL ||
-                  "https://i.ibb.co/Gv1qf3v/default-profile.png"
+                  user?.photoURL && user.photoURL.startsWith("http")
+                    ? user.photoURL
+                    : "https://i.ibb.co/Gv1qf3v/default-profile.png"
                 }
                 alt={user.displayName || "User"}
                 className="w-9 h-9 rounded-full object-cover border-2 border-[#C65656]"
