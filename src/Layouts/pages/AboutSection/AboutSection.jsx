@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Navigate } from "react-router";
 
 const AboutSection = () => {
   return (
@@ -21,7 +22,10 @@ const AboutSection = () => {
             deeply personal. No matter where you are, we’ve got the tools to
             help you grow stronger — physically and mentally.
           </p>
-          <Button className="bg-[#C65656] hover:bg-[#b94a4a] text-white text-base mt-2">
+          <Button
+            onClick={() => Navigate("/details")}
+            className="bg-[#C65656] hover:bg-[#b94a4a] text-white text-base mt-2"
+          >
             Learn More
           </Button>
         </div>

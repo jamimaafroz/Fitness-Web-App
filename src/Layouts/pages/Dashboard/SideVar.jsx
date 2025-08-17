@@ -1,3 +1,4 @@
+// src/components/Dashboard/SideVar.jsx
 import React, { useState, useEffect } from "react";
 import useAuth from "../../../Hooks/useAuth";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
@@ -30,11 +31,7 @@ const SideVar = ({ section }) => {
       axiosSecure
         .get(`/trainers?email=${user.email}`)
         .then((res) => {
-          if (res.data.length > 0) {
-            setTrainerId(res.data[0]._id);
-          } else {
-            setTrainerId(null);
-          }
+          setTrainerId(res.data?.[0]?._id || null);
         })
         .catch((err) => {
           console.error("Error fetching trainerId:", err);
@@ -47,61 +44,46 @@ const SideVar = ({ section }) => {
     }
   }, [user, axiosSecure]);
 
-  // Access control for Activity Log (only members)
-  if (
-    section === "Activity Log" &&
-    (user?.role === "trainer" || user?.role === "Admin")
-  ) {
-    return (
-      <div className="text-center text-red-600 font-semibold p-6">
-        ❌ Trainers and Admins cannot access Activity Log.
-      </div>
-    );
-  }
+  // Access control messages
+  const accessDeniedMessage = (msg) => (
+    <div className="text-center text-red-600 font-semibold p-6 border border-red-200 rounded-md bg-red-50">
+      ❌ {msg}
+    </div>
+  );
 
-  // Make Admin exclusive for admins
-  if (section === "Make Admin" && user?.role !== "Admin") {
-    return (
-      <div className="text-center text-red-600 font-semibold p-6">
-        ❌ You do not have permission to access Make Admin.
-      </div>
+  if (section === "Activity Log" && ["trainer", "admin"].includes(user?.role))
+    return accessDeniedMessage(
+      "Trainers and Admins cannot access Activity Log."
     );
-  }
-  //Add class: Only admin can access
-  if (section === "Add Class" && user?.role !== "Admin") {
-    return (
-      <div className="text-center text-red-600 font-semibold p-6">
-        ❌ You do not have permission to access Add Class.
-      </div>
-    );
-  }
-  // Balance & Payment History: Only admin can access
-  if (section === "Total Balance" && user?.role !== "Admin") {
-    return (
-      <div className="text-center text-red-600 font-semibold p-6">
-        ❌ You do not have permission to access Make Admin.
-      </div>
-    );
-  }
 
-  // Newsletter Subscribers - Admin only
-  if (section === "Newsletter Subscribers" && user?.role !== "Admin") {
-    return (
-      <div className="text-center text-red-600 font-semibold p-6">
-        ❌ You do not have permission to access Newsletter Subscribers.
-      </div>
+  if (section === "Make Admin" && user?.role !== "admin")
+    return accessDeniedMessage(
+      "You do not have permission to access Make Admin."
     );
-  }
 
-  if (loadingTrainerId) {
+  if (section === "Add Class" && user?.role !== "admin")
+    return accessDeniedMessage(
+      "You do not have permission to access Add Class."
+    );
+
+  if (section === "Total Balance" && user?.role !== "admin")
+    return accessDeniedMessage(
+      "You do not have permission to access Total Balance."
+    );
+
+  if (section === "Newsletter Subscribers" && user?.role !== "admin")
+    return accessDeniedMessage(
+      "You do not have permission to access Newsletter Subscribers."
+    );
+
+  if (loadingTrainerId)
     return (
       <div className="text-center p-6 text-gray-600 font-semibold">
         Loading user info...
       </div>
     );
-  }
 
-  // Build the section components here, now that you have trainerId
+  // Section components
   const sectionComponents = {
     "User Profile": <Profile />,
     "Activity Log": <ActivityLog />,
@@ -113,22 +95,28 @@ const SideVar = ({ section }) => {
     Forum: <AddForum />,
     "Manage Slots": <ManageSlots />,
     "Add Slot": <AddSlot />,
-    "Newsletter Subscribers": <NewsletterSubscribers />, // NEW COMPONENT
+    "Newsletter Subscribers": <NewsletterSubscribers />,
     "Total Balance": <Balance />,
-    "Add Class": <AddClass></AddClass>, // NEW COMPONENT
+    "Add Class": <AddClass />,
   };
 
   return (
-    <div className="w-full min-h-[calc(100vh-100px)] px-4 sm:px-8 py-6">
-      <div className="max-w-6xl mx-auto p-6">
-        <h1 className="text-3xl md:text-4xl font-semibold mb-6 text-center text-[#C65656]">
+    <div className="flex-1 w-full min-h-[calc(100vh-100px)] px-4 sm:px-8 py-6 bg-gray-50">
+      <div className="max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+        {/* Section Title */}
+        <h1 className="text-3xl md:text-4xl font-bold mb-6 text-center text-[#C65656]">
           {section}
         </h1>
-        {sectionComponents[section] || (
-          <p className="text-center text-gray-600">
-            Welcome to {user?.displayName || "User"}'s dashboard!
-          </p>
-        )}
+
+        {/* Section Content */}
+        <div className="space-y-6">
+          {sectionComponents[section] || (
+            <p className="text-center text-gray-600 text-lg">
+              Welcome, {user?.displayName || "user"}! Select a section from the
+              sidebar.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

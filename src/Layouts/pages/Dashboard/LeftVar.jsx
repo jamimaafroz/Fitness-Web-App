@@ -1,3 +1,4 @@
+// src/components/Dashboard/LeftSidebar.jsx
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -5,16 +6,44 @@ import { Link } from "react-router";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
   SheetTrigger,
-} from "../../../components/ui/sheet";
+} from "@/components/ui/sheet";
 import useAuth from "../../../Hooks/useAuth";
-import { FaHome } from "react-icons/fa";
-import { MdLogout } from "react-icons/md";
+import {
+  FaHome,
+  FaUser,
+  FaClipboardList,
+  FaUsers,
+  FaDumbbell,
+  FaMoneyCheckAlt,
+} from "react-icons/fa";
+import {
+  MdLogout,
+  MdAdminPanelSettings,
+  MdAddBox,
+  MdEventNote,
+} from "react-icons/md";
 
-const LeftVar = ({ setActiveSection }) => {
+const iconMap = {
+  "User Profile": <FaUser />,
+  "Activity Log": <FaClipboardList />,
+  "Be A Trainer": <FaDumbbell />,
+  "Booked Trainer": <MdEventNote />,
+  "Payment History": <FaMoneyCheckAlt />,
+  "Pending Trainer Requests": <FaUsers />,
+  "Newsletter Subscribers": <FaUsers />,
+  Forum: <FaClipboardList />,
+  "Manage Slots": <MdEventNote />,
+  "Add Slot": <MdAddBox />,
+  "Make Admin": <MdAdminPanelSettings />,
+  "Total Balance": <FaMoneyCheckAlt />,
+  "Add Class": <MdAddBox />,
+};
+
+const SidebarMenu = ({ setActiveSection, isMobile = false }) => {
   const { user, logOut } = useAuth();
 
   const baseLinks = [
@@ -23,29 +52,15 @@ const LeftVar = ({ setActiveSection }) => {
     "Be A Trainer",
     "Booked Trainer",
     "Payment History",
-    "Pending Trainer Requests", // Fixed comma here
+    "Pending Trainer Requests",
     "Newsletter Subscribers",
   ];
 
-  // ONLY normal users/members get these extra links:
   const extraLinks = [];
-
-  if (user?.role === "trainer") {
+  if (user?.role === "trainer")
     extraLinks.push("Forum", "Manage Slots", "Add Slot");
-  }
-  if (user?.role === "Admin") {
-    extraLinks.push("Forum");
-  }
-
-  if (user?.role === "Admin") {
-    extraLinks.push("Make Admin");
-  }
-  if (user?.role === "Admin") {
-    extraLinks.push("Total Balance");
-  }
-  if (user?.role === "Admin") {
-    extraLinks.push("Add Class");
-  }
+  if (user?.role === "admin")
+    extraLinks.push("Forum", "Make Admin", "Total Balance", "Add Class");
 
   const navLinks = [...baseLinks, ...extraLinks];
 
@@ -56,41 +71,51 @@ const LeftVar = ({ setActiveSection }) => {
   };
 
   return (
-    <aside className="flex flex-col justify-between p-4 border-r w-full bg-gray-100 shadow-md min-h-full">
+    <aside
+      className={`flex flex-col justify-between p-6 bg-white shadow-lg rounded-md min-h-full ${
+        isMobile ? "h-full" : "overflow-y-auto"
+      }`}
+    >
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold mb-6 text-[#C65656]">
+        <h1 className="text-3xl font-bold mb-8 text-[#C65656]">
           ZenithFit Dashboard
         </h1>
-        <nav className="flex flex-col space-y-3">
+
+        {/* Navigation Links */}
+        <nav className="flex flex-col space-y-2">
           {navLinks.map((name) => {
-            if (name === "Activity Log" && user?.role !== "member") return null;
-            if (name === "Newsletter Subscribers" && user?.role !== "Admin")
+            if (
+              (name === "Activity Log" && user?.role !== "member") ||
+              (name === "Newsletter Subscribers" && user?.role !== "admin")
+            )
               return null;
 
             return (
               <button
                 key={name}
                 onClick={() => setActiveSection(name)}
-                className="w-full text-left px-4 py-2 rounded hover:bg-[#f8d7da] hover:text-[#C65656] transition"
+                className="flex items-center gap-3 px-4 py-2 rounded hover:bg-[#FCE1E1] hover:text-[#C65656] transition-colors font-medium"
               >
-                {name}
+                {iconMap[name]}
+                <span>{name}</span>
               </button>
             );
           })}
         </nav>
       </div>
 
-      {/* Add margin-top here to separate bottom buttons from nav */}
+      {/* Footer Buttons */}
       <div className="flex flex-col gap-3 mt-6">
         <Link to="/">
-          <Button className="w-full justify-start gap-2 bg-white hover:cursor-pointer hover:text-[#C65656]">
+          <Button className="w-full justify-start gap-2 bg-[#f8f9fa] hover:bg-[#e2e6ea] hover:text-[#C65656]">
             <FaHome className="w-5 h-5" />
             Home
           </Button>
         </Link>
 
         <Button
-          className="w-full justify-start gap-2 bg-white hover:cursor-pointer hover:text-[#C65656]"
+          className="w-full justify-start gap-2 bg-[#f8f9fa] hover:bg-[#e2e6ea] hover:text-[#C65656]"
           onClick={handleLogout}
         >
           <MdLogout className="w-5 h-5" />
@@ -101,26 +126,36 @@ const LeftVar = ({ setActiveSection }) => {
   );
 };
 
-// Mobile version with prop
-export const MobileLeftVar = ({ setActiveSection }) => {
+// Mobile Sidebar
+export const MobileSidebar = ({ setActiveSection }) => {
+  const { user } = useAuth();
+
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="md:hidden p-2">
+        <Button
+          variant="ghost"
+          className="md:hidden p-2 fixed top-4 left-4 z-50"
+        >
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[250px] bg-white">
+
+      <SheetContent
+        side="left"
+        className="w-64 h-full bg-white overflow-y-auto"
+      >
         <SheetHeader>
-          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-          <SheetDescription className="sr-only">
-            This is the main navigation menu for the dashboard.
+          <SheetTitle className="text-xl font-bold">Navigation Menu</SheetTitle>
+          <SheetDescription>
+            Select a section to navigate within the dashboard.
           </SheetDescription>
         </SheetHeader>
-        <LeftVar setActiveSection={setActiveSection} />
+
+        {user && <SidebarMenu setActiveSection={setActiveSection} isMobile />}
       </SheetContent>
     </Sheet>
   );
 };
 
-export default LeftVar;
+export default SidebarMenu;

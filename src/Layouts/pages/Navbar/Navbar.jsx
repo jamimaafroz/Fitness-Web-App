@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import useAuth from "../../../Hooks/useAuth";
 import Logo from "../../../Hooks/Logo";
 import { toast } from "react-toastify";
-// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
@@ -20,7 +19,7 @@ const Navbar = () => {
         navigate("/login");
       })
       .catch((err) => {
-        toast.error("Failed to log out. Please try again.");
+        toast.error("Failed to log out. Try again.");
         console.error(err);
       });
   };
@@ -32,27 +31,30 @@ const Navbar = () => {
     { path: "/community", label: "Community" },
   ];
 
-  if (user) {
-    navLinks.push({ path: "/dashboard", label: "Dashboard" });
-  }
+  if (user) navLinks.push({ path: "/dashboard", label: "Dashboard" });
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xs shadow-md">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+    <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-sm bg-transparent shadow-md">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
         {/* Logo */}
-        <Link to="/" className="text-2xl font-bold text-primary">
+        <Link
+          to="/"
+          className="flex items-center text-2xl font-bold text-[#C65656]"
+        >
           <Logo />
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex gap-6 items-center">
+        <nav className="hidden md:flex items-center gap-6">
           {navLinks.map(({ path, label }) => (
             <NavLink
               key={path}
               to={path}
               className={({ isActive }) =>
-                `text-lg font-semibold transition-colors duration-300 ${
-                  isActive ? "text-[#C65656]" : "hover:text-[#C65656]"
+                `text-lg font-medium transition-colors ${
+                  isActive
+                    ? "text-[#C65656]"
+                    : "text-gray-700 hover:text-[#C65656]"
                 }`
               }
             >
@@ -61,7 +63,7 @@ const Navbar = () => {
           ))}
         </nav>
 
-        {/* Right Side - Auth Buttons */}
+        {/* Auth Buttons - Desktop */}
         <div className="hidden md:flex items-center gap-4">
           {user ? (
             <>
@@ -83,46 +85,46 @@ const Navbar = () => {
             </>
           ) : (
             <NavLink to="/login">
-              <Button className="bg-[#C65656] text-white hover:bg-[#9e4848]">
+              <Button className="bg-[#C65656] text-white hover:bg-[#a84242]">
                 Login
               </Button>
             </NavLink>
           )}
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Toggle */}
         <button
-          className="md:hidden"
-          onClick={() => setMobileOpen((prev) => !prev)}
+          className="md:hidden flex items-center justify-center"
+          onClick={() => setMobileOpen(!mobileOpen)}
         >
           {mobileOpen ? (
-            <X className="h-6 w-6 text-[#C65656]" />
+            <X className="w-6 h-6 text-[#C65656]" />
           ) : (
-            <Menu className="h-6 w-6 text-[#C65656]" />
+            <Menu className="w-6 h-6 text-[#C65656]" />
           )}
         </button>
       </div>
 
-      {/* Mobile Nav Menu - Animated */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden bg-white border-t shadow-md px-6 overflow-hidden"
+            transition={{ duration: 0.25 }}
+            className="md:hidden bg-white shadow-md border-t overflow-hidden"
           >
-            <div className="py-4 space-y-4">
+            <div className="flex flex-col gap-4 py-4 px-6">
               {navLinks.map(({ path, label }) => (
                 <NavLink
                   key={path}
                   to={path}
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
-                    `block text-lg font-semibold ${
-                      isActive ? "text-[#C65656]" : "text-gray-700"
-                    } hover:text-[#C65656]`
+                    `text-gray-700 font-medium hover:text-[#C65656] ${
+                      isActive && "text-[#C65656]"
+                    }`
                   }
                 >
                   {label}
@@ -148,7 +150,7 @@ const Navbar = () => {
                 </div>
               ) : (
                 <NavLink to="/login" onClick={() => setMobileOpen(false)}>
-                  <Button className="w-full bg-[#C65656] text-white hover:bg-[#9e4848] text-sm">
+                  <Button className="w-full bg-[#C65656] text-white hover:bg-[#a84242] text-sm">
                     Login
                   </Button>
                 </NavLink>

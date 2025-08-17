@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import useAuth from "../../Hooks/useAuth";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 
+// Star Rating Component
 const StarRating = ({ rating, setRating }) => (
   <div className="flex space-x-1">
     {[1, 2, 3, 4, 5].map((star) => (
@@ -10,7 +12,7 @@ const StarRating = ({ rating, setRating }) => (
         key={star}
         type="button"
         onClick={() => setRating(star)}
-        className={`text-3xl cursor-pointer ${
+        className={`text-2xl cursor-pointer ${
           star <= rating ? "text-yellow-400" : "text-gray-300"
         }`}
         aria-label={`${star} Star`}
@@ -21,63 +23,64 @@ const StarRating = ({ rating, setRating }) => (
   </div>
 );
 
-const BookedTrainer = ({ trainerId }) => {
+const BookedTrainer = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
   const queryClient = useQueryClient();
+  console.log(queryClient);
 
-  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedTrainerId, setSelectedTrainerId] = useState(null);
   const [reviewText, setReviewText] = useState("");
   const [starRating, setStarRating] = useState(0);
 
-  // Fetch trainer data
+  // Fetch all booked trainers for this user
   const {
-    data: trainer,
-    isLoading: loadingTrainer,
-    error: trainerError,
+    data: trainers = [],
+    isLoading,
+    error,
   } = useQuery({
-    queryKey: ["trainer", trainerId],
-    queryFn: () =>
-      axiosSecure.get(`/trainers/${trainerId}`).then((res) => res.data),
-    enabled: !!trainerId,
-  });
-  // Fetch reviews data
-  const {
-    data: reviews = [],
-    isLoading: loadingReviews,
-    error: reviewsError,
-  } = useQuery({
-    queryKey: ["reviews", trainerId],
+    queryKey: ["booked-trainers", user?.email],
     queryFn: () =>
       axiosSecure
-        .get(`/reviews`, { params: { trainerId } })
+        .get(`/booked-trainers?userEmail=${user?.email}`)
         .then((res) => res.data),
-    enabled: !!trainerId,
+    enabled: !!user?.email,
   });
 
-  // Mutation to post a review
+  // Fetch reviews for a selected trainer
+  const { data: reviews = [], refetch: refetchReviews } = useQuery({
+    queryKey: ["reviews", selectedTrainerId],
+    queryFn: () =>
+      axiosSecure
+        .get(`/reviews`, { params: { trainerId: selectedTrainerId } })
+        .then((res) => res.data),
+    enabled: !!selectedTrainerId,
+  });
+
   const mutation = useMutation({
     mutationFn: (newReview) => axiosSecure.post("/reviews", newReview),
     onSuccess: () => {
-      setIsReviewOpen(false);
+      setReviewModalOpen(false);
       setReviewText("");
       setStarRating(0);
-      queryClient.invalidateQueries({ queryKey: ["reviews", trainerId] });
-      alert("Review submitted! Thanks for your feedback.");
+      refetchReviews();
+      toast.success("Review submitted! Thanks for your feedback.");
     },
-    onError: () => alert("Failed to submit review, try again."),
+    onError: () => alert("Failed to submit review. Try again."),
   });
 
-  const openReviewModal = () => {
+  const openReviewModal = (trainerId) => {
     if (!user?.email) {
-      alert("You need to be logged in to leave a review.");
+      toast.error("You need to be logged in to leave a review.");
       return;
     }
-    setIsReviewOpen(true);
+    setSelectedTrainerId(trainerId);
+    setReviewModalOpen(true);
   };
 
   const closeReviewModal = () => {
-    setIsReviewOpen(false);
+    setReviewModalOpen(false);
     setReviewText("");
     setStarRating(0);
   };
@@ -85,142 +88,116 @@ const BookedTrainer = ({ trainerId }) => {
   const handleReviewSubmit = (e) => {
     e.preventDefault();
     if (starRating === 0) {
-      alert("Please provide a star rating");
+      toast.warning("Please provide a star rating");
       return;
     }
 
     mutation.mutate({
-      trainerId,
+      trainerId: selectedTrainerId,
       rating: starRating,
       comment: reviewText,
       userEmail: user.email,
     });
   };
 
-  if (loadingTrainer)
-    return <p className="text-center mt-10">Loading trainer info...</p>;
-
-  if (trainerError)
+  if (isLoading)
+    return <p className="text-center mt-10">Loading booked trainers...</p>;
+  if (error)
     return (
-      <p className="text-center mt-10 text-red-600 font-semibold">
-        Error: {trainerError.message}
-      </p>
+      <p className="text-center mt-10 text-red-600">Error: {error.message}</p>
     );
-
-  if (!trainer)
+  if (trainers.length === 0)
     return (
-      <p className="text-center mt-10 text-gray-600 font-semibold">
-        No trainer selected.
-      </p>
+      <p className="text-center mt-10 text-gray-600">No trainers booked yet.</p>
     );
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
-      {/* Trainer Info */}
-      <section className="bg-white shadow-md rounded-lg p-6">
-        <h2 className="text-3xl font-bold mb-2 text-[#C65656]">
-          {trainer.name}
-        </h2>
-        <p className="text-gray-700 mb-4">
-          {trainer.bio || "No bio available."}
-        </p>
+    <div className="max-w-7xl mx-auto p-6 space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {trainers.map((trainer) => (
+          <div
+            key={trainer._id}
+            className="bg-white shadow-lg rounded-xl p-6 hover:shadow-2xl transition"
+          >
+            <div className="flex items-center space-x-4 mb-4">
+              <img
+                src={trainer.image || "https://via.placeholder.com/100"}
+                alt={trainer.name}
+                className="w-20 h-20 rounded-full object-cover border-2 border-[#C65656]"
+              />
+              <div>
+                <h2 className="text-2xl font-semibold text-[#C65656]">
+                  {trainer.name}
+                </h2>
+                <p className="text-gray-600">{trainer.email}</p>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <h3 className="font-semibold text-lg mb-1">Expertise:</h3>
-            <ul className="list-disc list-inside text-gray-600">
-              {trainer.skills?.length
-                ? trainer.skills.map((skill, idx) => <li key={idx}>{skill}</li>)
-                : "No skills listed"}
-            </ul>
+            <p className="text-gray-700 mb-2">{trainer.otherInfo}</p>
+
+            <div className="mb-2">
+              <p className="font-semibold text-gray-800">Skills:</p>
+              <ul className="list-disc list-inside text-gray-600">
+                {trainer.skills?.length
+                  ? trainer.skills.map((s, i) => <li key={i}>{s}</li>)
+                  : "No skills listed"}
+              </ul>
+            </div>
+
+            <div className="mb-2">
+              <p className="font-semibold text-gray-800">
+                Booking Days & Time:
+              </p>
+              <p>
+                {trainer.days?.join(", ")} | {trainer.time}
+              </p>
+            </div>
+
+            <button
+              onClick={() => openReviewModal(trainer._id)}
+              className="mt-3 w-full py-2 bg-[#C65656] text-white rounded-md font-semibold hover:bg-[#a84242] transition"
+            >
+              Leave a Review
+            </button>
+
+            {/* Reviews Section */}
+            {selectedTrainerId === trainer._id && reviews.length > 0 && (
+              <div className="mt-4 max-h-48 overflow-y-auto border-t pt-4">
+                <h3 className="font-semibold text-lg text-[#C65656] mb-2">
+                  Reviews:
+                </h3>
+                {reviews.map((rev) => (
+                  <div key={rev._id} className="border p-3 rounded-md mb-2">
+                    <div className="flex items-center mb-1">
+                      {[...Array(5)].map((_, i) => (
+                        <span
+                          key={i}
+                          className={`text-xl ${
+                            i < rev.rating ? "text-yellow-400" : "text-gray-300"
+                          }`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                      <span className="ml-2 text-sm text-gray-500">
+                        {new Date(rev.date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p>{rev.comment}</p>
+                    <p className="mt-1 text-sm text-gray-600 italic">
+                      - {rev.userEmail}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-
-          <div>
-            <h3 className="font-semibold text-lg mb-1">Contact:</h3>
-            <p>Email: {trainer.email}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Classes Info */}
-      <section className="bg-white shadow-md rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-[#C65656] mb-3">
-          Classes Offered
-        </h3>
-        <ul className="list-disc list-inside text-gray-700 space-y-1">
-          {trainer.classes?.length
-            ? trainer.classes.map((cls, idx) => <li key={idx}>{cls}</li>)
-            : "No classes listed"}
-        </ul>
-      </section>
-
-      {/* Slot Info */}
-      <section className="bg-white shadow-md rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-[#C65656] mb-3">
-          Available Slots
-        </h3>
-        <ul className="list-disc list-inside text-gray-700 space-y-1">
-          {trainer.slots?.length
-            ? trainer.slots.map((slot, idx) => <li key={idx}>{slot}</li>)
-            : "No available slots"}
-        </ul>
-      </section>
-
-      {/* Reviews Section */}
-      <section className="bg-white shadow-md rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-[#C65656] mb-3">Reviews</h3>
-        {loadingReviews ? (
-          <p>Loading reviews...</p>
-        ) : reviewsError ? (
-          <p className="text-red-600">Failed to load reviews.</p>
-        ) : reviews.length === 0 ? (
-          <p>No reviews yet. Be the first to leave one!</p>
-        ) : (
-          <ul className="space-y-4 max-h-64 overflow-y-auto">
-            {reviews.map((rev) => (
-              <li key={rev._id} className="border p-3 rounded-md">
-                <div className="flex items-center mb-1">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={`text-xl ${
-                        i < rev.rating ? "text-yellow-400" : "text-gray-300"
-                      }`}
-                    >
-                      ★
-                    </span>
-                  ))}
-                  <span className="ml-2 text-sm text-gray-500">
-                    {new Date(rev.date).toLocaleDateString()}
-                  </span>
-                </div>
-                <p>{rev.comment}</p>
-                <p className="mt-1 text-sm text-gray-600 italic">
-                  - {rev.userEmail}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {/* Review Button */}
-      <div className="text-center">
-        <button
-          onClick={openReviewModal}
-          className="inline-block px-6 py-3 rounded-md bg-[#C65656] text-white font-semibold hover:bg-[#a84242] transition"
-        >
-          Leave a Review
-        </button>
+        ))}
       </div>
 
       {/* Review Modal */}
-      {isReviewOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4"
-        >
+      {reviewModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
             <button
               onClick={closeReviewModal}

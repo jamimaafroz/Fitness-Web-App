@@ -25,10 +25,11 @@ const Register = () => {
     formState: { errors },
   } = useForm();
 
-  const saveUserAndGetToken = async (email, photoURL) => {
+  const saveUserAndGetToken = async (email, photoURL, name) => {
     const userinfo = {
+      name,
       email,
-      role: "Admin",
+      role: "member",
       created_at: new Date().toISOString(),
       last_log_in: new Date().toISOString(),
       photoURL,
@@ -52,7 +53,7 @@ const Register = () => {
         photoURL: data.photoURL,
       });
 
-      await saveUserAndGetToken(user.email, data.photoURL);
+      await saveUserAndGetToken(user.email, data.photoURL, data.name);
 
       toast.success("Registered & logged in successfully!");
       setLoading(false);
@@ -69,7 +70,11 @@ const Register = () => {
       const result = await signInWithGoogle();
       const user = result.user;
 
-      await saveUserAndGetToken(user.email, user.photoURL || "");
+      await saveUserAndGetToken(
+        user.email,
+        user.photoURL || "",
+        user.displayName || "Anonymous"
+      );
 
       toast.success("Signed in with Google successfully!");
       navigate("/");

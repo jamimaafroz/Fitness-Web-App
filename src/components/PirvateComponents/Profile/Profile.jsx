@@ -1,16 +1,34 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import useAuth from "../../../Hooks/useAuth";
+import axios from "axios";
+import { useNavigate } from "react-router";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user: authUser } = useAuth();
+  const [user, setUser] = useState(null);
 
-  // Safely extract values or fallback
+  useEffect(() => {
+    if (!authUser?.email) return;
+    axios
+      .get(
+        `https://fitness-app-server-six.vercel.app/users?email=${authUser.email}`
+      )
+      .then((res) => setUser(res.data[0])) // res.data is an array
+      .catch((err) => console.error(err));
+  }, [authUser]);
+
   const fullName = user?.name || user?.displayName || "N/A";
-  const profilePicUrl = user?.image || user?.photoURL || null;
+  const profilePicUrl = user?.photoURL || "/default-profile.png";
   const email = user?.email || "N/A";
-  const lastLogin = user?.lastLoggedIn
-    ? new Date(user.lastLoggedIn).toUTCString()
+  const lastLogin = user?.last_log_in
+    ? new Date(user.last_log_in).toUTCString()
     : "Never logged in";
+
+  const navigate = useNavigate();
+  const handleClick = () => {
+    // Navigate to the update profile page
+    navigate("/update-profile");
+  };
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white shadow rounded-lg">
@@ -25,19 +43,12 @@ const Profile = () => {
         </div>
 
         <div>
-          <h2 className="font-semibold text-lg">Profile Picture URL</h2>
-          {profilePicUrl ? (
-            <a
-              href={profilePicUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline break-words"
-            >
-              {profilePicUrl}
-            </a>
-          ) : (
-            <p>No profile picture URL</p>
-          )}
+          <h2 className="font-semibold text-lg">Profile Picture</h2>
+          <img
+            src={profilePicUrl}
+            alt="Profile"
+            className="w-24 h-24 rounded-full"
+          />
         </div>
 
         <div>
@@ -51,7 +62,7 @@ const Profile = () => {
         </div>
 
         <button
-          onClick={() => alert("Update Profile clicked!")}
+          onClick={handleClick}
           className="w-full mt-6 py-2 bg-[#C65656] text-white rounded hover:bg-[#a94545]"
         >
           Update Profile

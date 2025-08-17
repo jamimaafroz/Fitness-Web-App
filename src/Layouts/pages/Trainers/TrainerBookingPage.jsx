@@ -9,12 +9,13 @@ import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { toast } from "react-toastify";
-import { cn } from "@/lib/utils"; // Ensure you have this utility
+import { cn } from "@/lib/utils";
+import useAuth from "../../../Hooks/useAuth";
 
 const packages = [
   {
     title: "Basic Membership",
-    price: "$10",
+    price: 10,
     benefits: [
       "Access to gym facilities during regular hours",
       "Use of cardio & strength equipment",
@@ -23,16 +24,16 @@ const packages = [
   },
   {
     title: "Standard Membership",
-    price: "$50",
+    price: 50,
     benefits: [
       "All benefits of Basic",
-      "Use of cardio & strength equipment",
       "Access to group fitness classes (yoga, spinning, Zumba)",
+      "Nutrition guidance & progress tracking",
     ],
   },
   {
     title: "Premium Membership",
-    price: "$100",
+    price: 100,
     benefits: [
       "All benefits of Standard",
       "Locker rooms, showers, sauna",
@@ -46,9 +47,11 @@ const TrainerBookingPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   const searchParams = new URLSearchParams(location.search);
   const slot = searchParams.get("slot");
+  const trainerName = searchParams.get("trainer") || id;
 
   const [selectedPlan, setSelectedPlan] = useState("");
 
@@ -57,14 +60,21 @@ const TrainerBookingPage = () => {
       toast.error("Please select a membership package.");
       return;
     }
+    if (!slot || !id) {
+      toast.error("Missing booking details.");
+      return;
+    }
+    if (!user?.email) {
+      toast.error("You must be logged in to book a trainer.");
+      return;
+    }
 
-    // Redirect to payment page with selected info
-    console.log("Navigating to payment...");
     const selectedPackage = packages.find((pkg) => pkg.title === selectedPlan);
-    const cost = selectedPackage?.price?.replace("$", "") || "0";
-    console.log(slot, selectedPlan, cost);
+    const cost = selectedPackage?.price || 0;
+
+    // Navigate to payment page
     navigate(
-      `/payment?trainerId=${id}&slot=${slot}&plan=${selectedPlan}&cost=${cost}`
+      `/payment?trainerId=${id}&trainer=${trainerName}&slot=${slot}&package=${selectedPlan}&cost=${cost}`
     );
   };
 
@@ -77,7 +87,7 @@ const TrainerBookingPage = () => {
       <Card>
         <CardContent className="p-6 space-y-2">
           <p>
-            <strong>Trainer ID:</strong> {id}
+            <strong>Trainer:</strong> {trainerName}
           </p>
           <p>
             <strong>Selected Slot:</strong> {slot}
@@ -126,7 +136,7 @@ const TrainerBookingPage = () => {
                   className="w-6 h-6 border border-[#C65656] cursor-pointer"
                 />
                 <p className="font-semibold text-lg text-[#C65656]">
-                  {pkg.price}
+                  ${pkg.price}
                 </p>
               </div>
             </label>
@@ -139,7 +149,7 @@ const TrainerBookingPage = () => {
           onClick={handleJoinNow}
           className="mt-6 bg-[#C65656] hover:bg-[#a84242] text-white w-full max-w-xs"
         >
-          Join Now
+          Proceed to Payment
         </Button>
       </div>
     </section>

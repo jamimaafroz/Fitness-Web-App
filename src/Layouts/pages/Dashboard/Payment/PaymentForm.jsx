@@ -3,96 +3,84 @@ import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import useAxiosSecure from "../../../../Hooks/useAxiosSecure";
 import useAuth from "../../../../Hooks/useAuth";
+import { toast } from "react-toastify";
 
 const PaymentForm = () => {
   const stripe = useStripe();
-  const { user } = useAuth();
   const elements = useElements();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const axiosSecure = useAxiosSecure();
   const navigate = useNavigate();
 
   const trainerId = searchParams.get("trainerId");
+  const trainerName = searchParams.get("trainerName") || "Unknown Trainer";
   const slot = searchParams.get("slot");
-  const plan = searchParams.get("plan");
-  const cost = searchParams.get("cost");
+  const plan = searchParams.get("plan") || "Standard";
+  const cost = Number(searchParams.get("cost")) || 0;
 
-  const amount = Number(cost) * 100; // Convert to cents
-
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!stripe || !elements) return;
 
-    setLoading(true);
-    const card = elements.getElement(CardElement);
-    if (!card) return;
-
-    const { error: pmError } = await stripe.createPaymentMethod({
-      type: "card",
-      card,
-    });
-
-    if (pmError) {
-      setError(pmError.message);
-      setLoading(false);
+    if (!trainerId || !slot || !plan || !cost) {
+      setError("Booking info incomplete!");
       return;
-    } else {
-      setError("");
     }
 
+    const card = elements.getElement(CardElement);
+    if (!card) return setError("Card info not loaded!");
+
+    setLoading(true);
+    setError("");
+
     try {
-      // Create payment intent on server
-      const res = await axiosSecure.post(`/create-payment-intent`, {
-        amount,
-      });
-      const clientSecret = res.data.clientSecret;
-
-      const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card,
-          billing_details: {
-            name: user?.displayName || "Anonymous",
-            email: user?.email || "no-email@example.com",
-          },
-        },
+      // 1️⃣ Create payment intent
+      const { data } = await axiosSecure.post("/create-payment-intent", {
+        amount: cost * 100,
       });
 
-      if (result.error) {
-        setError(result.error.message);
-        setLoading(false);
-        return;
-      }
+      // 2️⃣ Confirm payment
+      const result = await stripe.confirmCardPayment(data.clientSecret, {
+        payment_method: { card },
+      });
 
-      if (result.paymentIntent.status === "succeeded") {
-        setError("");
-        console.log("Payment successful!", result);
+      if (result.error) throw new Error(result.error.message);
+      if (result.paymentIntent.status !== "succeeded")
+        throw new Error("Payment failed");
 
-        // Save booking/payment info to backend
-        const paymentData = {
-          userEmail: user.email,
-          trainerId,
-          slot,
-          plan,
-          amount: Number(cost), // store as dollars
-          transactionId: result.paymentIntent.id,
-          date: new Date(),
-        };
+      // 3️⃣ Build booking & payment objects
+      const commonData = {
+        userEmail: user.email,
+        userName: user.displayName || "Anonymous",
+        trainerId,
+        trainerName,
+        slot,
+        plan,
+        amount: cost,
+        transactionId: result.paymentIntent.id,
+        date: new Date(),
+      };
 
-        const saveRes = await axiosSecure.post("/payments/save", paymentData);
-        if (saveRes.status === 201) {
-          // Redirect to booked trainer page
-          navigate(`/dashboard/booked-trainer/${trainerId}`);
-        } else {
-          setError("Failed to save booking info");
-        }
-      }
+      const bookingData = {
+        ...commonData,
+        package: plan,
+        status: "confirmed",
+        createdAt: new Date(),
+      };
+
+      // 4️⃣ Save to backend
+      await axiosSecure.post("/payments/save", commonData);
+      await axiosSecure.post("/booked-trainers", bookingData);
+
+      toast.success("Payment & booking successful!");
+      navigate(`/dashboard/booked-trainer/${trainerId}`);
     } catch (err) {
       console.error(err);
-      setError("Payment failed. Please try again.");
+      setError(err.message || "Payment failed");
     } finally {
       setLoading(false);
     }
@@ -127,7 +115,7 @@ const PaymentForm = () => {
           disabled={!stripe || loading}
           className="w-full py-3 rounded-lg bg-[#C65656] text-white text-lg font-medium shadow-md hover:bg-[#a84242] transition-all duration-300 disabled:opacity-60"
         >
-          {loading ? "Processing..." : "Pay Now"}
+          {loading ? "Processing..." : `Pay $${cost}`}
         </button>
 
         {error && <p className="text-red-500 text-center mt-4">{error}</p>}

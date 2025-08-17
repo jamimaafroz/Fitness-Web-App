@@ -6,12 +6,12 @@ const NewsletterSubscribers = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("fit-access-token"); // or wherever you store your JWT
+    const token = localStorage.getItem("fit-access-token");
 
     fetch("https://fitness-app-server-six.vercel.app/newsletter-subscribers", {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // this is crucial
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => {
@@ -29,39 +29,47 @@ const NewsletterSubscribers = () => {
   }, []);
 
   if (loading)
-    return <p className="text-center mt-10">Loading subscribers...</p>;
-  if (error) return <p className="text-center mt-10 text-red-600">{error}</p>;
+    return (
+      <p className="text-center mt-10 text-gray-500">Loading subscribers...</p>
+    );
+  if (error)
+    return (
+      <p className="text-center mt-10 text-red-600 font-semibold">{error}</p>
+    );
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white rounded shadow-md">
-      <h2 className="text-3xl font-bold mb-6 text-[#C65656]">
-        Newsletter Subscribers
-      </h2>
+    <div className="max-w-7xl mx-auto p-6 bg-white rounded-2xl shadow-lg">
       {subscribers.length === 0 ? (
-        <p>No subscribers yet.</p>
+        <p className="text-center text-gray-600">No subscribers yet.</p>
       ) : (
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-[#C65656] text-white">
-              <th className="border border-gray-300 px-4 py-2">Name</th>
-              <th className="border border-gray-300 px-4 py-2">Email</th>
-              <th className="border border-gray-300 px-4 py-2">
-                Subscribed At
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {subscribers.map(({ _id, name, email, subscribedAt }) => (
-              <tr key={_id} className="hover:bg-gray-100">
-                <td className="border border-gray-300 px-4 py-2">{name}</td>
-                <td className="border border-gray-300 px-4 py-2">{email}</td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {new Date(subscribedAt).toLocaleString()}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
+            <thead className="bg-[#C65656] text-white">
+              <tr>
+                <th className="px-4 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                  Subscribed At
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {subscribers.map(({ _id, name, email, subscribedAt }) => (
+                <tr key={_id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 text-gray-800">{name}</td>
+                  <td className="px-4 py-3 text-gray-800">{email}</td>
+                  <td className="px-4 py-3 text-gray-500 text-sm">
+                    {new Date(subscribedAt).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

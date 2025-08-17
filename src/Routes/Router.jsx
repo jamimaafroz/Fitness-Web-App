@@ -17,6 +17,7 @@ import AllClasses from "../Layouts/pages/FeaturedSection/AllClasses";
 import BeATrainer from "../components/PirvateComponents/BeTrainer/BeTrainer";
 import ForumPostSection from "../Layouts/pages/FeaturedSection/ForumPostSection";
 import Error from "../Layouts/pages/Error";
+import UpdateProfile from "../components/PirvateComponents/Profile/UpdateProfile";
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +51,10 @@ export const router = createBrowserRouter([
       {
         path: "/community",
         element: <ForumPostSection></ForumPostSection>,
+      },
+      {
+        path: "/update-profile",
+        element: <UpdateProfile></UpdateProfile>,
       },
       {
         path: "/booking/:id",

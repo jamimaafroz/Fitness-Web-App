@@ -3,11 +3,9 @@ import { Button } from "../../ui/button";
 import { toast } from "react-toastify";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import useAuth from "../../../Hooks/useAuth";
-// <-- added this
 
 const PendingTrainers = () => {
-  const { user } = useAuth(); // <-- get current user info
-
+  const { user } = useAuth();
   const [pendingTrainers, setPendingTrainers] = useState([]);
   const [selectedTrainer, setSelectedTrainer] = useState(null);
   const [feedback, setFeedback] = useState("");
@@ -36,7 +34,7 @@ const PendingTrainers = () => {
       toast.success("Trainer approved!");
       fetchPending();
     } catch (err) {
-      toast.error("Failed to approve", err.message || "Unknown error");
+      toast.error(err.message || "Failed to approve");
     }
   };
 
@@ -44,7 +42,6 @@ const PendingTrainers = () => {
     setSelectedTrainer(trainer);
     setFeedback("");
     setShowModal(true);
-    setPendingTrainers("");
   };
 
   const handleRejectSubmit = async () => {
@@ -54,110 +51,103 @@ const PendingTrainers = () => {
         feedback,
       });
       toast.success("Trainer rejected with feedback");
-      // Remove the rejected trainer from the list right away
       setPendingTrainers((prev) =>
         prev.filter((t) => t._id !== selectedTrainer._id)
       );
       setShowModal(false);
       setSelectedTrainer(null);
-      setFeedback(""); // Clear feedback input too, just to be safe
-    } catch (err) {
+    } catch (error) {
+      console.error("Rejection error:", error);
+      setShowModal(false);
       toast.error("Rejection failed");
-      console.error(err);
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <h2 className="text-3xl font-bold mb-6 text-center text-primary">
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <h2 className="text-3xl font-bold text-center text-[#C65656] mb-6">
         Pending Trainer Requests 🕒
       </h2>
 
       {pendingTrainers.length === 0 ? (
         <p className="text-center text-gray-500">No pending requests found.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse border border-gray-300">
-            <thead className="bg-[#C65656] text-white">
-              <tr>
-                <th className="border px-4 py-2 whitespace-nowrap">Name</th>
-                <th className="border px-4 py-2 whitespace-nowrap">Email</th>
-                <th className="border px-4 py-2 whitespace-nowrap hidden sm:table-cell">
-                  Age
-                </th>
-                <th className="border px-4 py-2 whitespace-nowrap">Skills</th>
-                <th className="border px-4 py-2 whitespace-nowrap hidden md:table-cell">
-                  Days
-                </th>
-                <th className="border px-4 py-2 whitespace-nowrap hidden md:table-cell">
-                  Time
-                </th>
-                <th className="border px-4 py-2 italic whitespace-nowrap hidden lg:table-cell">
-                  Other Info
-                </th>
-                <th className="border px-4 py-2 text-center whitespace-nowrap">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {pendingTrainers.map((trainer) => (
-                <tr key={trainer._id} className="hover:bg-gray-50">
-                  <td className="border px-4 py-2 whitespace-nowrap">
+        <div className="space-y-4">
+          {pendingTrainers.map((trainer) => (
+            <div
+              key={trainer._id}
+              className="bg-white shadow-md rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <img
+                  src={trainer.image || "https://via.placeholder.com/80"}
+                  alt={trainer.name}
+                  className="w-20 h-20 rounded-full object-cover"
+                />
+                <div>
+                  <h3 className="text-xl font-semibold text-[#C65656]">
                     {trainer.name}
-                  </td>
-                  <td className="border px-4 py-2 whitespace-nowrap">
-                    {trainer.email}
-                  </td>
-                  <td className="border px-4 py-2 whitespace-nowrap hidden sm:table-cell">
-                    {trainer.age}
-                  </td>
-                  <td className="border px-4 py-2 whitespace-nowrap">
-                    {trainer.skills?.join(", ")}
-                  </td>
-                  <td className="border px-4 py-2 whitespace-nowrap hidden md:table-cell">
-                    {trainer.days?.join(", ")}
-                  </td>
-                  <td className="border px-4 py-2 whitespace-nowrap hidden md:table-cell">
-                    {trainer.time}
-                  </td>
-                  <td className="border px-4 py-2 italic whitespace-nowrap hidden lg:table-cell">
-                    {trainer.otherInfo || "-"}
-                  </td>
-                  <td className="border px-4 py-2 flex flex-wrap gap-2 justify-center whitespace-nowrap">
-                    {user?.role === "Admin" ? (
-                      <>
-                        <Button
-                          size="sm"
-                          onClick={() => handleApprove(trainer._id)}
-                          className="bg-green-500 hover:bg-green-600 text-white"
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleRejectClick(trainer)}
-                          className="bg-red-500 hover:bg-red-600 text-white"
-                        >
-                          Reject
-                        </Button>
-                      </>
-                    ) : (
-                      <span className="text-gray-500 italic">No actions</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </h3>
+                  <p className="text-gray-600 text-sm">{trainer.email}</p>
+                  <p className="text-gray-600 text-sm">
+                    Age: {trainer.age} | Skills: {trainer.skills?.join(", ")}
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    Days: {trainer.days?.join(", ")} | Time: {trainer.time}
+                  </p>
+                  {trainer.otherInfo && (
+                    <p className="text-gray-500 text-sm italic mt-1">
+                      {trainer.otherInfo}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 justify-start md:justify-end">
+                {user?.role === "Admin" ? (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() => handleApprove(trainer._id)}
+                      className="bg-green-500 hover:bg-green-600 text-white"
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleRejectClick(trainer)}
+                      className="bg-red-500 hover:bg-red-600 text-white"
+                    >
+                      Reject
+                    </Button>
+                  </>
+                ) : (
+                  <span
+                    className={`text-white px-3 py-1 rounded ${
+                      trainer.status === "approved"
+                        ? "bg-green-500"
+                        : trainer.status === "rejected"
+                        ? "bg-red-500"
+                        : "bg-gray-500"
+                    }`}
+                  >
+                    {trainer.status.charAt(0).toUpperCase() +
+                      trainer.status.slice(1)}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* MODAL */}
+      {/* Modal */}
       {showModal && selectedTrainer && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 p-4">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full space-y-4">
-            <h3 className="text-xl font-semibold">Reject Trainer</h3>
+            <h3 className="text-xl font-semibold text-[#C65656]">
+              Reject Trainer
+            </h3>
             <p>
               <strong>Name:</strong> {selectedTrainer.name}
             </p>
@@ -170,14 +160,14 @@ const PendingTrainers = () => {
 
             <label className="block text-sm font-medium">Feedback</label>
             <textarea
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-[#C65656]"
               rows="4"
               placeholder="Write reason for rejection..."
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
             />
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-2 flex-wrap">
               <Button variant="outline" onClick={() => setShowModal(false)}>
                 Cancel
               </Button>

@@ -31,6 +31,7 @@ const Login = () => {
 
       // Get user with role
       const userRes = await axiosInstance.get(`/users?email=${user.email}`);
+      console.log("User fetched from DB:", userRes.data);
       const fullUser = userRes.data[0];
 
       if (!fullUser) {

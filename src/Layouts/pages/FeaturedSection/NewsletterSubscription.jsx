@@ -48,18 +48,17 @@ const NewsletterSubscription = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6  rounded shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-[#C65656]">
+    <div className="w-full max-w-md sm:max-w-lg md:max-w-xl mx-auto p-6 sm:p-8 bg-white rounded-2xl shadow-lg">
+      <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-6 text-center text-[#C65656]">
         Subscribe to our Newsletter
       </h2>
-      <form onSubmit={handleSubscribe} className="space-y-4">
+      <form onSubmit={handleSubscribe} className="space-y-5">
         <input
           type="text"
           placeholder="Your Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded"
-          required
+          className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C65656] focus:border-[#C65656]"
           disabled={loading}
         />
         <input
@@ -67,21 +66,20 @@ const NewsletterSubscription = () => {
           placeholder="Your Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded"
-          required
+          className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C65656] focus:border-[#C65656]"
           disabled={loading}
         />
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-[#C65656] text-white rounded font-semibold hover:bg-[#a84242] transition"
+          className="w-full py-3 sm:py-4 bg-[#C65656] text-white font-semibold rounded-lg shadow-md hover:bg-[#a84242] transition-all duration-300 disabled:opacity-50"
         >
           {loading ? "Subscribing..." : "Subscribe Now"}
         </button>
       </form>
       {message && (
         <p
-          className={`mt-4 text-center font-semibold ${
+          className={`mt-4 text-center font-semibold text-sm sm:text-base ${
             message.type === "success" ? "text-green-600" : "text-red-600"
           }`}
         >

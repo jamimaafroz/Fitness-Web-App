@@ -35,8 +35,16 @@ const AuthProvider = ({ children }) => {
     return signInWithPopup(auth, googleProvider);
   };
 
-  const updateUserProfile = (profileInfo) => {
-    return updateProfile(auth.currentUser, profileInfo);
+  const updateUserProfile = async (profileInfo) => {
+    if (!auth.currentUser) return;
+
+    await updateProfile(auth.currentUser, profileInfo);
+
+    // update context immediately
+    setUser((prevUser) => ({
+      ...prevUser,
+      ...profileInfo,
+    }));
   };
 
   const logOut = () => {
@@ -60,6 +68,7 @@ const AuthProvider = ({ children }) => {
               ...backendUser,
               displayName:
                 backendUser.name || backendUser.displayName || "Anonymous",
+              photoURL: backendUser.photoURL || currentUser.photoURL || null,
             });
           } else {
             setUser(currentUser); // fallback to Firebase user object
@@ -79,6 +88,7 @@ const AuthProvider = ({ children }) => {
 
   const authInfo = {
     user,
+    setUser,
     loading,
     createUser,
     signIn,

@@ -51,8 +51,8 @@ const ManageSlots = () => {
           <tbody>
             {slots.map((slot) => (
               <tr key={slot._id} className="text-center border-t">
-                <td className="border px-4 py-2">{slot.name}</td>
-                <td className="border px-4 py-2">{slot.time}</td>
+                <td className="border px-4 py-2">{slot.slotName}</td>
+                <td className="border px-4 py-2">{slot.slotTime}</td>
                 <td className="border px-4 py-2">{slot.days.join(", ")}</td>
                 <td className="border px-4 py-2">{slot.className}</td>
                 <td className="border px-4 py-2">
